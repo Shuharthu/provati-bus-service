@@ -7,8 +7,8 @@
 // Global Configuration Defaults
 // You can directly configure your remote Supabase Project credentials here or via the UI Settings Modal:
 const PROVATI_CONFIG = {
-  SUPABASE_URL: '', // e.g. 'https://xyzcompany.supabase.co'
-  SUPABASE_ANON_KEY: '', // e.g. 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+  SUPABASE_URL: 'https://vclequhmjpzxhopxuebs.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjbGVxdWhtanB6eGhvcHh1ZWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODU5NTcsImV4cCI6MjEwODY2MTk1N30.qYlOu00qBQ707M5QowMUylA006W95RJuvdRcEZZt7DY',
 };
 
 // Keys for localStorage persistence
@@ -731,6 +731,28 @@ class ProvatiDB {
 
     bookings.unshift(newBooking);
     localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(bookings));
+
+    // Sync to live Supabase database if connected
+    if (this.isSupabaseConnected && this.supabase) {
+      try {
+        this.supabase.from('bookings').insert([{
+          pnr_code: newBooking.pnr_code,
+          passenger_name: newBooking.passenger_name,
+          passenger_phone: newBooking.passenger_phone,
+          seat_numbers: newBooking.seat_numbers,
+          is_prebooking: newBooking.is_prebooking,
+          booking_status: newBooking.booking_status,
+          total_amount: newBooking.total_amount,
+          boarding_station: newBooking.boarding_station,
+          dropping_station: newBooking.dropping_station
+        }]).then(({ error }) => {
+          if (error) console.warn('Supabase booking sync notice:', error.message);
+          else console.log('✅ Booking synced to remote Supabase database:', newBooking.pnr_code);
+        }).catch(err => console.warn('Supabase insert notice:', err));
+      } catch (e) {
+        console.warn('Supabase sync skipped:', e);
+      }
+    }
 
     this.logAudit(
       bookingPayload.passenger_name,
