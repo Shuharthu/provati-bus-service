@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Provati Bus Service | প্রভাতী বাস সার্ভিস - সড়ক পথে বিমান</title>
+  <meta name="description" content="Provati Bus Service - Premium Inter-City and Local transit across Bangladesh. Real-time booking, double-decker sleepers, and executive business class coaches.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo-transparent.png">
+
+  <!-- Google Fonts: Plus Jakarta Sans, Inter, Hind Siliguri (Bengali) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- QR Code Generator Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <!-- Chart.js for Admin Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- ============================================================================
+       TOP NAVIGATION BAR
+       ============================================================================ -->
+  <header class="site-header">
+    <div class="container nav-container">
+      
+      <!-- Logo & Brand Info -->
+      <a class="brand-wrapper" onclick="switchView('user')">
+        <img src="assets/logo.png" alt="Provati Bus Service Logo" class="brand-logo-img">
+        <div class="brand-text-block">
+          <div class="brand-title">
+            Provati <span class="accent">Bus Service</span>
+          </div>
+          <div class="brand-tagline">
+            "Shorok pothe Biman" <i class="fa-solid fa-paper-plane"></i> <span class="bengali-text">(সড়ক পথে বিমান)</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Navigation Tabs (RBAC / View Switcher) -->
+      <div class="nav-tabs">
+        <button class="nav-btn active" id="nav-booking-btn" onclick="switchView('user')">
+          <i class="fa-solid fa-calendar-days"></i> Schedules & Booking
+        </button>
+        <button class="nav-btn" id="nav-prebook-btn" onclick="activatePrebookingFilter()">
+          <i class="fa-solid fa-lock"></i> Pre-Book <span class="badge-pill">Festival</span>
+        </button>
+        <button class="nav-btn" id="nav-editor-btn" onclick="switchView('editor')">
+          <i class="fa-solid fa-clipboard-list"></i> Editor Desk
+        </button>
+        <button class="nav-btn" id="nav-admin-btn" onclick="switchView('admin')">
+          <i class="fa-solid fa-shield-halved"></i> Admin Portal
+        </button>
+      </div>
+
+      <!-- Quick Actions & Role Switcher Pill -->
+      <div class="nav-actions">
+        <!-- Live Supabase Status Pill -->
+        <div class="supabase-status-pill" id="supabase-status-pill" onclick="openSupabaseSettingsModal()" title="Supabase Database Connection Status (Click to configure)">
+          <span class="status-indicator-dot local" id="supabase-status-dot"></span>
+          <span id="supabase-status-text">Local Fallback</span>
+        </div>
+
+        <button class="nav-btn" onclick="openPnrLookupModal()" title="Search ticket with PNR number">
+          <i class="fa-solid fa-ticket"></i> Find PNR
+        </button>
+
+        <!-- Live Role Switcher Dropdown Pill -->
+        <div class="role-pill-selector" onclick="openRoleSwitcherModal()" title="Click to switch RBAC Role">
+          <div class="role-badge user" id="active-role-badge">USER</div>
+          <span class="role-user-name" id="active-user-name">Shuharthu Barua</span>
+          <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color: var(--text-muted);"></i>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ============================================================================
+       MAIN CONTENT: PASSENGER BOOKING WORKSPACE (USER VIEW)
+       ============================================================================ -->
+  <main id="user-booking-view">
+
+    <!-- 1. HERO FLEET CAROUSEL ("OUR PREMIUM FLEET") -->
+    <section class="fleet-showcase-section">
+      <div class="container">
+        
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <h2><i class="fa-solid fa-bus-simple"></i> OUR PREMIUM FLEET</h2>
+            <p class="section-subtitle">Experience highway aviation with customized sleeper cabins, business recliners, and fresh inter-city express buses.</p>
+          </div>
+          
+          <div class="fleet-nav-controls">
+            <button class="fleet-ctrl-btn" onclick="resetFleetFilter()" title="Show All Fleet">
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Fleet Cards Grid matching image_4, 5, 6, 7 -->
+        <div class="fleet-grid" id="fleet-cards-container">
+          
+          <!-- Card 1: Double-Decker AC Sleeper (image_7.png) -->
+          <div class="fleet-card" data-category="Sleeper" onclick="filterByFleet('Sleeper')">
+            <div class="fleet-card-img-wrap">
+              <img src="assets/fleet-sleeper.jpg" alt="Double-Decker AC Sleeper" class="fleet-card-img">
+              <span class="fleet-badge-top premium"><i class="fa-solid fa-crown"></i> Premium Comfort</span>
+              <button class="fleet-like-btn" onclick="event.stopPropagation(); toggleFleetFavorite(this)"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="fleet-card-body">
+              <div class="fleet-rating-row">
+                <span class="fleet-rating"><i class="fa-solid fa-star"></i> 4.9</span>
+                <span class="fleet-seats-chip"><i class="fa-solid fa-couch"></i> 34 Sleeper Berths</span>
+              </div>
+              <h3 class="fleet-bus-title">Double-Decker AC Sleeper</h3>
+              <div class="fleet-amenities-tags">
+                <span class="amenity-tag">2x1 Sleeper Beds</span>
+                <span class="amenity-tag">Personal LED Screen</span>
+                <span class="amenity-tag">WiFi & USB</span>
+                <span class="amenity-tag">Blanket & Water</span>
+              </div>
+              <div class="fleet-card-footer">
+                <div class="fleet-price-col">
+                  <span class="price-label">Starting From</span>
+                  <span class="price-amount">BDT 1,850</span>
+                </div>
+                <button class="fleet-filter-btn">
+                  <span>Filter Fleet</span> <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Executive AC Business Coach (image_4.png) -->
+          <div class="fleet-card" data-category="Business" onclick="filterByFleet('Business')">
+            <div class="fleet-card-img-wrap">
+              <img src="assets/fleet-business.jpg" alt="Executive AC Business Coach" class="fleet-card-img">
+              <span class="fleet-badge-top"><i class="fa-solid fa-star"></i> Business Executive</span>
+              <button class="fleet-like-btn" onclick="event.stopPropagation(); toggleFleetFavorite(this)"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="fleet-card-body">
+              <div class="fleet-rating-row">
+                <span class="fleet-rating"><i class="fa-solid fa-star"></i> 4.8</span>
+                <span class="fleet-seats-chip"><i class="fa-solid fa-chair"></i> 40 Reclining Seats</span>
+              </div>
+              <h3 class="fleet-bus-title">Executive AC Business Coach</h3>
+              <div class="fleet-amenities-tags">
+                <span class="amenity-tag">2x2 Luxury Recliners</span>
+                <span class="amenity-tag">Reading Lights</span>
+                <span class="amenity-tag">USB Fast Charge</span>
+                <span class="amenity-tag">Snacks & Coffee</span>
+              </div>
+              <div class="fleet-card-footer">
+                <div class="fleet-price-col">
+                  <span class="price-label">Starting From</span>
+                  <span class="price-amount">BDT 1,200</span>
+                </div>
+                <button class="fleet-filter-btn">
+                  <span>Filter Fleet</span> <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Non-AC Fresh Inter-City Coach (image_6.png) -->
+          <div class="fleet-card" data-category="Highway" onclick="filterByFleet('Highway')">
+            <div class="fleet-card-img-wrap">
+              <img src="assets/fleet-non-ac.jpg" alt="Non-AC Fresh Inter-City Coach" class="fleet-card-img">
+              <span class="fleet-badge-top"><i class="fa-solid fa-wind"></i> Natural Ventilation</span>
+              <button class="fleet-like-btn" onclick="event.stopPropagation(); toggleFleetFavorite(this)"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="fleet-card-body">
+              <div class="fleet-rating-row">
+                <span class="fleet-rating"><i class="fa-solid fa-star"></i> 4.5</span>
+                <span class="fleet-seats-chip"><i class="fa-solid fa-chair"></i> 40 Economy Seats</span>
+              </div>
+              <h3 class="fleet-bus-title">Non-AC Fresh Inter-City Coach</h3>
+              <div class="fleet-amenities-tags">
+                <span class="amenity-tag">Economical Fare</span>
+                <span class="amenity-tag">Sliding Windows</span>
+                <span class="amenity-tag">Large Cargo Bay</span>
+                <span class="amenity-tag">Extra Legroom</span>
+              </div>
+              <div class="fleet-card-footer">
+                <div class="fleet-price-col">
+                  <span class="price-label">Starting From</span>
+                  <span class="price-amount">BDT 420</span>
+                </div>
+                <button class="fleet-filter-btn">
+                  <span>Filter Fleet</span> <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Standard Non-AC Local Commuter (image_5.png) -->
+          <div class="fleet-card" data-category="Commuter" onclick="filterByFleet('Commuter')">
+            <div class="fleet-card-img-wrap">
+              <img src="assets/fleet-commuter.jpg" alt="Standard Non-AC Local Commuter" class="fleet-card-img">
+              <span class="fleet-badge-top"><i class="fa-solid fa-route"></i> Local Commuter</span>
+              <button class="fleet-like-btn" onclick="event.stopPropagation(); toggleFleetFavorite(this)"><i class="fa-regular fa-heart"></i></button>
+            </div>
+            <div class="fleet-card-body">
+              <div class="fleet-rating-row">
+                <span class="fleet-rating"><i class="fa-solid fa-star"></i> 4.3</span>
+                <span class="fleet-seats-chip"><i class="fa-solid fa-users"></i> 40 Commuter Seats</span>
+              </div>
+              <h3 class="fleet-bus-title">Standard Non-AC Local Commuter</h3>
+              <div class="fleet-amenities-tags">
+                <span class="amenity-tag">Budget-Friendly</span>
+                <span class="amenity-tag">Inside District</span>
+                <span class="amenity-tag">Frequent Stops</span>
+                <span class="amenity-tag">Quick Boarding</span>
+              </div>
+              <div class="fleet-card-footer">
+                <div class="fleet-price-col">
+                  <span class="price-label">Starting From</span>
+                  <span class="price-amount">BDT 120</span>
+                </div>
+                <button class="fleet-filter-btn">
+                  <span>Filter Fleet</span> <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 2. ROUTE FILTERS & LIVE BOOKING ENGINE -->
+    <section class="booking-engine-section">
+      <div class="container main-booking-layout">
+        
+        <!-- Left Filter Panel -->
+        <aside class="glass-panel search-filter-sidebar">
+          
+          <div class="filter-heading-row">
+            <h3><i class="fa-solid fa-sliders"></i> Journey Filters</h3>
+            <span class="reset-filter-link" onclick="resetAllFilters()">Reset All</span>
+          </div>
+
+          <!-- Segmented Toggle: Inter-City / Inside-District -->
+          <label class="filter-label">Route Category</label>
+          <div class="segmented-toggle-group">
+            <button class="seg-toggle-btn active" id="toggle-intercity" onclick="setRouteTypeFilter('Inter-City')">
+              <i class="fa-solid fa-signs-post"></i> Inter-City
+            </button>
+            <button class="seg-toggle-btn" id="toggle-district" onclick="setRouteTypeFilter('Inside-District')">
+              <i class="fa-solid fa-map-pin"></i> Inside-District
+            </button>
+          </div>
+
+          <!-- Origin Station Input -->
+          <div class="filter-form-group">
+            <label class="filter-label" for="origin-input">Departure Station (Origin)</label>
+            <div class="route-input-wrap">
+              <i class="fa-solid fa-circle-dot route-icon"></i>
+              <input type="text" id="origin-input" class="route-input" placeholder="e.g. Dhaka, Chattogram..." value="Dhaka" autocomplete="off" oninput="handleOriginSuggest(this.value)">
+            </div>
+            <div class="autosuggest-list" id="origin-suggest-list"></div>
+          </div>
+
+          <!-- Swap Button -->
+          <button class="swap-route-btn" onclick="swapOriginDestination()" title="Swap Origin & Destination">
+            <i class="fa-solid fa-arrows-up-down"></i>
+          </button>
+
+          <!-- Destination Station Input -->
+          <div class="filter-form-group">
+            <label class="filter-label" for="dest-input">Arrival Station (Destination)</label>
+            <div class="route-input-wrap">
+              <i class="fa-solid fa-location-dot route-icon dest"></i>
+              <input type="text" id="dest-input" class="route-input" placeholder="e.g. Chattogram, Cox's Bazar..." value="Chattogram" autocomplete="off" oninput="handleDestSuggest(this.value)">
+            </div>
+            <div class="autosuggest-list" id="dest-suggest-list"></div>
+          </div>
+
+          <!-- Date Selector -->
+          <div class="filter-form-group">
+            <label class="filter-label" for="travel-date-picker">Date of Journey</label>
+            <input type="date" id="travel-date-picker" class="route-input" style="padding-left: 1rem;">
+          </div>
+
+          <!-- Advance Pre-Booking Lock Switch -->
+          <div class="prebooking-switch-box">
+            <div class="prebooking-info">
+              <span class="prebooking-title"><i class="fa-solid fa-lock"></i> Advance Pre-Booking</span>
+              <span class="prebooking-desc">15-90 days festival & Eid holiday rush guarantee</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="prebooking-checkbox" onchange="togglePrebookingFilter(this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Service Class Filter Pills -->
+          <label class="filter-label">Service Amenities</label>
+          <div class="service-pills-row">
+            <button class="service-pill-btn active" onclick="setServiceFilter('All', this)">All</button>
+            <button class="service-pill-btn" onclick="setServiceFilter('AC', this)">AC</button>
+            <button class="service-pill-btn" onclick="setServiceFilter('Non-AC', this)">Non-AC</button>
+            <button class="service-pill-btn" onclick="setServiceFilter('Sleeper', this)">Sleeper</button>
+            <button class="service-pill-btn" onclick="setServiceFilter('Seater', this)">2x2 Seater</button>
+          </div>
+
+        </aside>
+
+        <!-- Right Main Column: Schedules & Dynamic Seating Map Drawer -->
+        <section class="schedules-main-col">
+          
+          <!-- Schedules Header -->
+          <div class="glass-panel schedules-header-bar">
+            <div class="schedules-header-left">
+              <h3>
+                <i class="fa-solid fa-route"></i> Available Bus Schedules
+                <span class="live-indicator-badge">
+                  <span class="pulse-dot"></span> Live Schedules
+                </span>
+              </h3>
+            </div>
+            <div class="schedules-count-pill" id="schedules-count-text">
+              Showing 0 scheduled departures
+            </div>
+          </div>
+
+          <!-- Schedules List Container -->
+          <div class="schedules-list" id="schedules-cards-container">
+            <!-- Dynamic schedules rendered via app.js -->
+          </div>
+
+          <!-- 3. EXPANDABLE SEAT SELECTION & JOURNEY BUILDER DRAWER -->
+          <div class="seat-selection-drawer" id="seat-map-drawer">
+            
+            <div class="seatmap-top-bar">
+              <div class="seatmap-title-info">
+                <h4 id="seatmap-bus-title"><i class="fa-solid fa-bus"></i> PVT-DD-701 Double-Decker AC Sleeper</h4>
+                <p id="seatmap-route-text">Dhaka → Chattogram • Departure: 08:30 PM • Base Fare: BDT 1,850/seat</p>
+              </div>
+              <button class="close-seatmap-btn" onclick="closeSeatMapDrawer()" title="Close Seat Map">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <!-- Seat Legend -->
+            <div class="seat-legend-bar">
+              <div class="legend-item">
+                <span class="legend-swatch available"></span> Available
+              </div>
+              <div class="legend-item">
+                <span class="legend-swatch selected"></span> Selected (Emerald)
+              </div>
+              <div class="legend-item">
+                <span class="legend-swatch booked"></span> Booked / Sold Out
+              </div>
+              <div class="legend-item">
+                <span class="legend-swatch hold"></span> Advance Hold / VIP
+              </div>
+            </div>
+
+            <div class="seatmap-workspace-grid">
+              
+              <!-- Bus Vehicle Chassis with Driver & Seating Grid -->
+              <div class="bus-chassis-container">
+                
+                <div class="bus-front-cabin">
+                  <span class="cabin-label"><i class="fa-solid fa-shield"></i> Front Cabin</span>
+                  <i class="fa-solid fa-dharmachakra steering-wheel-icon" title="Driver Wheel"></i>
+                </div>
+
+                <!-- Deck Switch Tabs for Double-Decker Buses -->
+                <div class="deck-tabs-nav" id="double-decker-tabs" style="display: none;">
+                  <button class="deck-tab-btn active" id="tab-upper-deck" onclick="switchDeckView('upper')">
+                    <i class="fa-solid fa-layer-group"></i> Upper Deck (Sleeper Berths)
+                  </button>
+                  <button class="deck-tab-btn" id="tab-lower-deck" onclick="switchDeckView('lower')">
+                    <i class="fa-solid fa-bars"></i> Lower Deck
+                  </button>
+                </div>
+
+                <!-- Dynamic Grid of Bus Seats -->
+                <div class="seating-grid-container" id="seating-grid-layout">
+                  <!-- Generated dynamically in app.js -->
+                </div>
+
+              </div>
+
+              <!-- Journey Summary Sidebar -->
+              <div class="journey-summary-sidebar">
+                <h4 class="summary-heading"><i class="fa-solid fa-ticket"></i> Journey Details</h4>
+
+                <div>
+                  <label class="filter-label">Selected Seats (Max 4)</label>
+                  <div class="selected-seats-badge-list" id="selected-seats-container">
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Please tap seats on the map</span>
+                  </div>
+                </div>
+
+                <div class="seat-limit-notice">
+                  <i class="fa-solid fa-triangle-exclamation"></i> Max 4 seats per consumer limit enforced
+                </div>
+
+                <!-- Passenger Details Inputs -->
+                <div class="passenger-input-block">
+                  <label class="filter-label">Passenger Name</label>
+                  <input type="text" id="passenger-name-input" class="passenger-input" placeholder="Full name" value="Shuharthu Barua">
+                  
+                  <label class="filter-label">Mobile Number</label>
+                  <input type="tel" id="passenger-phone-input" class="passenger-input" placeholder="01XXXXXXXXX" value="+880 1933 778899">
+                </div>
+
+                <!-- Fare Breakdown -->
+                <div class="fare-breakdown-table">
+                  <div class="fare-row">
+                    <span>Base Ticket Fare:</span>
+                    <span id="summary-base-fare">BDT 0.00</span>
+                  </div>
+                  <div class="fare-row">
+                    <span>Govt VAT & Tax (5%):</span>
+                    <span id="summary-tax-fare">BDT 0.00</span>
+                  </div>
+                  <div class="fare-row total-row">
+                    <span>Total Amount:</span>
+                    <span class="total-price-val" id="summary-total-fare">BDT 0.00</span>
+                  </div>
+                </div>
+
+                <!-- Action Button -->
+                <button class="proceed-payment-cta" id="proceed-pay-btn" onclick="openPaymentGatewayModal()" disabled>
+                  <i class="fa-solid fa-credit-card"></i> Proceed to Payment
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================================================================
+       EDITOR DESK WORKSPACE PANEL (COUNTER DISPATCHER & SCHEDULE MANAGER)
+       ============================================================================ -->
+  <section class="role-workspace-panel" id="editor-workspace-view">
+    <div class="container">
+      
+      <div class="workspace-header-bar">
+        <div class="workspace-title">
+          <h2><i class="fa-solid fa-clipboard-list" style="color: var(--dawn-amber);"></i> Counter Editor Workspace</h2>
+          <p class="section-subtitle">Real-time trip dispatch, bus pricing modifications, schedule delay alerts, and passenger manifest oversight.</p>
+        </div>
+        <button class="select-trip-btn" onclick="openCreateTripModal()">
+          <i class="fa-solid fa-plus"></i> Add New Trip Schedule
+        </button>
+      </div>
+
+      <!-- Manifest & Schedules Management Table -->
+      <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem; color: #ffffff;">
+          <i class="fa-solid fa-bus"></i> Active Schedules & Status Dispatcher
+        </h3>
+        <div class="data-table-container">
+          <table class="modern-data-table" id="editor-schedules-table">
+            <thead>
+              <tr>
+                <th>Coach #</th>
+                <th>Fleet Type</th>
+                <th>Route</th>
+                <th>Departure</th>
+                <th>Price (BDT)</th>
+                <th>Available Seats</th>
+                <th>Trip Status</th>
+                <th>VIP Seat Block</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="editor-schedules-tbody">
+              <!-- Rendered via app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Passenger Manifest -->
+      <div class="glass-panel" style="padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff;">
+            <i class="fa-solid fa-users-viewfinder"></i> Live Passenger Manifest & PNR Registry
+          </h3>
+          <input type="text" id="manifest-search-input" class="route-input" style="max-width: 280px; padding: 0.5rem 0.8rem;" placeholder="Search by PNR or Passenger..." oninput="filterManifest(this.value)">
+        </div>
+        <div class="data-table-container">
+          <table class="modern-data-table">
+            <thead>
+              <tr>
+                <th>PNR Code</th>
+                <th>Passenger</th>
+                <th>Phone</th>
+                <th>Route</th>
+                <th>Seats</th>
+                <th>Total BDT</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Manage</th>
+              </tr>
+            </thead>
+            <tbody id="passenger-manifest-tbody">
+              <!-- Rendered via app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================================
+       SUPER ADMIN COMMAND PORTAL (ANALYTICS, RBAC ROLES, SUPABASE CONNECT)
+       ============================================================================ -->
+  <section class="role-workspace-panel" id="admin-workspace-view">
+    <div class="container">
+      
+      <div class="workspace-header-bar">
+        <div class="workspace-title">
+          <h2><i class="fa-solid fa-shield-halved" style="color: var(--contrast-coral);"></i> Super Admin Command</h2>
+          <p class="section-subtitle">Executive financial oversight, live Supabase pipeline synchronization, user role administration, and system audit logs.</p>
+        </div>
+        
+        <div style="display: flex; gap: 0.75rem;">
+          <button class="ticket-action-btn" onclick="openSupabaseSettingsModal()">
+            <i class="fa-solid fa-database"></i> Supabase Setup
+          </button>
+          <button class="ticket-action-btn" onclick="resetDatabaseDemo()" style="color: var(--contrast-coral); border-color: rgba(239, 68, 68, 0.4);">
+            <i class="fa-solid fa-rotate"></i> Reset Demo Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Key Performance Metrics Cards -->
+      <div class="metrics-cards-grid">
+        
+        <div class="metric-card">
+          <div class="metric-icon-wrap green">
+            <i class="fa-solid fa-bangladeshi-taka-sign"></i>
+          </div>
+          <div class="metric-info">
+            <h5>Total Net Revenue</h5>
+            <p id="admin-metric-revenue">BDT 0</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-wrap amber">
+            <i class="fa-solid fa-hourglass-half"></i>
+          </div>
+          <div class="metric-info">
+            <h5>Counter Holds (6h)</h5>
+            <p id="admin-metric-holds">BDT 0</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-wrap blue">
+            <i class="fa-solid fa-ticket"></i>
+          </div>
+          <div class="metric-info">
+            <h5>Seats Reserved</h5>
+            <p id="admin-metric-seats">0 Seats</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-wrap coral">
+            <i class="fa-solid fa-chart-pie"></i>
+          </div>
+          <div class="metric-info">
+            <h5>Fleet Occupancy</h5>
+            <p id="admin-metric-occupancy">0%</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Analytics Charts Row -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+        
+        <div class="glass-panel" style="padding: 1.5rem;">
+          <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: #ffffff;">
+            <i class="fa-solid fa-chart-simple"></i> AC vs. Non-AC Seat Utilization
+          </h4>
+          <div style="height: 240px; position: relative;">
+            <canvas id="occupancyChart"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-panel" style="padding: 1.5rem;">
+          <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: #ffffff;">
+            <i class="fa-solid fa-wallet"></i> Payment Gateway Revenue Split
+          </h4>
+          <div style="height: 240px; position: relative;">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- User Role Management Directory -->
+      <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem; color: #ffffff;">
+          <i class="fa-solid fa-user-shield"></i> User Role Assignment & Access Directory (RBAC)
+        </h3>
+        <div class="data-table-container">
+          <table class="modern-data-table">
+            <thead>
+              <tr>
+                <th>Profile Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Current Role</th>
+                <th>Set Access Level</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-tbody">
+              <!-- Rendered via app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- System Audit Trail -->
+      <div class="glass-panel" style="padding: 1.5rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem; color: #ffffff;">
+          <i class="fa-solid fa-list-check"></i> System Event & Audit Logs
+        </h3>
+        <div class="data-table-container">
+          <table class="modern-data-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Actor</th>
+                <th>Role</th>
+                <th>Action</th>
+                <th>Event Details</th>
+              </tr>
+            </thead>
+            <tbody id="admin-audit-tbody">
+              <!-- Rendered via app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================================
+       MODAL 1: MULTI-METHOD PAYMENT GATEWAY (BKASH, NAGAD, CARD, COUNTER-HOLD)
+       ============================================================================ -->
+  <div class="modal-overlay" id="payment-gateway-modal">
+    <div class="payment-modal-box">
+      
+      <div class="payment-modal-header">
+        <h3><i class="fa-solid fa-shield-halved" style="color: var(--accent-emerald);"></i> Provati PayGateway</h3>
+        <button class="close-modal-x" onclick="closePaymentModal()">&times;</button>
+      </div>
+
+      <!-- Method Switcher Navigation -->
+      <div class="payment-methods-nav">
+        <button class="pay-tab-btn active" id="btn-tab-mfs" onclick="switchPayTab('mfs')">
+          <i class="fa-solid fa-mobile-screen-button"></i> Mobile Banking
+        </button>
+        <button class="pay-tab-btn" id="btn-tab-card" onclick="switchPayTab('card')">
+          <i class="fa-solid fa-credit-card"></i> Card Payment
+        </button>
+        <button class="pay-tab-btn" id="btn-tab-hold" onclick="switchPayTab('hold')">
+          <i class="fa-solid fa-clock-rotate-left"></i> 6h Counter Hold
+        </button>
+      </div>
+
+      <!-- Tab 1: Mobile Financial Services (bKash & Nagad) -->
+      <div class="payment-tab-content active" id="tab-content-mfs">
+        
+        <div class="mfs-brand-switcher">
+          <div class="mfs-brand-card bkash active" id="brand-bkash-select" onclick="selectMfsBrand('bKash')">
+            <i class="fa-solid fa-bird"></i> bKash Checkout
+          </div>
+          <div class="mfs-brand-card nagad" id="brand-nagad-select" onclick="selectMfsBrand('Nagad')">
+            <i class="fa-solid fa-fire"></i> Nagad Pay
+          </div>
+        </div>
+
+        <div class="filter-form-group">
+          <label class="filter-label" id="mfs-wallet-label">bKash Account Number</label>
+          <input type="tel" id="mfs-account-input" class="route-input" style="padding-left: 1rem;" placeholder="01XXXXXXXXX" value="01933778899">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="filter-form-group">
+            <label class="filter-label">2-Step OTP Code</label>
+            <input type="text" id="mfs-otp-input" class="route-input" style="padding-left: 1rem;" placeholder="6-digit OTP" value="584910">
+          </div>
+          <div class="filter-form-group">
+            <label class="filter-label">Wallet Secure PIN</label>
+            <input type="password" id="mfs-pin-input" class="route-input" style="padding-left: 1rem;" placeholder="•••••" value="12345">
+          </div>
+        </div>
+
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          <i class="fa-solid fa-lock" style="color: var(--accent-emerald);"></i> 256-Bit SSL Encrypted. Auto-generates instant PNR with confirmation SMS.
+        </div>
+
+      </div>
+
+      <!-- Tab 2: VISA / MasterCard / AMEX -->
+      <div class="payment-tab-content" id="tab-content-card">
+        
+        <!-- Live Card Mockup -->
+        <div class="credit-card-preview">
+          <div class="card-top-row">
+            <div class="card-chip"></div>
+            <div class="card-brand-icons">
+              <i class="fa-brands fa-cc-visa"></i>
+              <i class="fa-brands fa-cc-mastercard"></i>
+              <i class="fa-brands fa-cc-amex"></i>
+            </div>
+          </div>
+          <div class="card-number-display" id="card-preview-number">4532 •••• •••• 8821</div>
+          <div class="card-bottom-row">
+            <div>
+              <span style="font-size: 0.6rem; display: block; opacity: 0.8;">Cardholder</span>
+              <span id="card-preview-name" style="font-weight: 700;">SHUHARTHU BARUA</span>
+            </div>
+            <div>
+              <span style="font-size: 0.6rem; display: block; opacity: 0.8;">Expires</span>
+              <span id="card-preview-exp" style="font-weight: 700;">08/29</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-form-group">
+          <label class="filter-label">Cardholder Full Name</label>
+          <input type="text" id="card-name-input" class="route-input" style="padding-left: 1rem;" placeholder="Name on card" value="Shuharthu Barua" oninput="updateCardPreview()">
+        </div>
+
+        <div class="filter-form-group">
+          <label class="filter-label">Card Number</label>
+          <input type="text" id="card-num-input" class="route-input" style="padding-left: 1rem;" placeholder="4532 0000 0000 8821" value="4532 9840 2201 8821" maxlength="19" oninput="updateCardPreview()">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+          <div class="filter-form-group">
+            <label class="filter-label">Expiry (MM/YY)</label>
+            <input type="text" id="card-exp-input" class="route-input" style="padding-left: 1rem;" placeholder="08/29" value="08/29" maxlength="5" oninput="updateCardPreview()">
+          </div>
+          <div class="filter-form-group">
+            <label class="filter-label">CVV / CVC</label>
+            <input type="password" id="card-cvv-input" class="route-input" style="padding-left: 1rem;" placeholder="•••" value="842" maxlength="4">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tab 3: 6-Hour Cash-at-Counter Hold -->
+      <div class="payment-tab-content" id="tab-content-hold">
+        <div class="counter-hold-banner">
+          <h4><i class="fa-solid fa-clock"></i> 6-Hour Cash Reservation Policy</h4>
+          <p>Your selected seats will be held on provisional hold for <strong>6 hours</strong> from booking time. Please visit any Provati Bus terminal counter to pay in cash and collect your printed boarding pass before the timer expires.</p>
+        </div>
+
+        <div class="filter-form-group">
+          <label class="filter-label">Select Counter Collection Point</label>
+          <select id="counter-select-station" class="route-input" style="padding-left: 1rem; cursor: pointer;">
+            <option>Sayedabad VIP Counter 3 (Central Dhaka)</option>
+            <option>Dampara Provati Lounge (Chattogram)</option>
+            <option>Arambagh Royal Lounge (Dhaka)</option>
+            <option>Kallayanpur VIP Desk (Dhaka)</option>
+            <option>Kolatoli Beach Circle (Cox's Bazar)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Transaction Amount Summary Bar & Master Action -->
+      <div style="padding: 1.25rem 1.75rem; background: rgba(15, 23, 42, 0.95); border-top: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: block; text-transform: uppercase;">Total To Pay</span>
+          <span style="font-size: 1.4rem; font-weight: 800; color: var(--accent-emerald);" id="modal-pay-amount">BDT 0.00</span>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--dawn-amber);" id="modal-seats-count">
+          0 Seats Selected
+        </div>
+      </div>
+
+      <button class="master-confirm-cta" id="btn-master-confirm-pay" onclick="executeFinalPayment()">
+        <i class="fa-solid fa-lock"></i> Confirm & Secure Transaction
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       MODAL 2: DIGITAL E-TICKET & PNR SYSTEM (PRINTABLE CONTAINER)
+       ============================================================================ -->
+  <div class="eticket-modal-overlay" id="eticket-view-modal">
+    <div class="eticket-card-container">
+      
+      <!-- Ticket Header with Logo & PNR -->
+      <div class="ticket-header-top">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <img src="assets/logo.png" alt="Provati Logo" style="width: 44px; height: 44px; background: #ffffff; border-radius: 8px; padding: 2px;">
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff;">Provati Bus Service</h3>
+            <span style="font-size: 0.72rem; color: var(--dawn-amber); font-style: italic;">"Shorok pothe Biman"</span>
+          </div>
+        </div>
+        <div class="ticket-pnr-pill" id="ticket-display-pnr">
+          PNR PVT-4091A
+        </div>
+      </div>
+
+      <!-- Ticket Body Content -->
+      <div class="ticket-body-content">
+        
+        <!-- Route Visual Strip -->
+        <div class="ticket-route-strip">
+          <div class="ticket-station-point">
+            <span id="ticket-dep-date">Today, 08:30 PM</span>
+            <h4 id="ticket-origin-name">Dhaka</h4>
+            <span id="ticket-boarding-point">Sayedabad Central VIP Gate</span>
+          </div>
+
+          <div class="ticket-route-arrow">
+            <i class="fa-solid fa-paper-plane" style="font-size: 1.1rem;"></i>
+            <span style="font-size: 0.68rem; font-weight: 700; color: var(--light-ice-blue);" id="ticket-duration-val">5h 30m</span>
+          </div>
+
+          <div class="ticket-station-point" style="text-align: right;">
+            <span id="ticket-arr-date">Next Day, 02:00 AM</span>
+            <h4 id="ticket-dest-name">Chattogram</h4>
+            <span id="ticket-dropping-point">Dampara Provati Lounge</span>
+          </div>
+        </div>
+
+        <!-- 3-Column Ticket Details -->
+        <div class="ticket-grid-details">
+          <div class="ticket-detail-item">
+            <label>Passenger Name</label>
+            <p id="ticket-passenger-name">Shuharthu Barua</p>
+          </div>
+          <div class="ticket-detail-item">
+            <label>Contact Phone</label>
+            <p id="ticket-passenger-phone">+880 1933 778899</p>
+          </div>
+          <div class="ticket-detail-item">
+            <label>Coach & Category</label>
+            <p id="ticket-coach-desc">PVT-DD-701 (Sleeper)</p>
+          </div>
+          <div class="ticket-detail-item">
+            <label>Chosen Seat Numbers</label>
+            <p id="ticket-seats-val" style="color: var(--accent-emerald); font-size: 1.1rem;">U7, U8</p>
+          </div>
+          <div class="ticket-detail-item">
+            <label>Payment Method</label>
+            <p id="ticket-payment-method">bKash (MFS)</p>
+          </div>
+          <div class="ticket-detail-item">
+            <label>Payment Status</label>
+            <p id="ticket-payment-status" style="color: var(--accent-emerald);">PAID</p>
+          </div>
+        </div>
+
+        <!-- Stylized Highway Transit Route Map Preview (matching image_8.png in mockup) -->
+        <div class="ticket-route-map-box">
+          <div class="route-map-header">
+            <span class="route-map-title"><i class="fa-solid fa-map-location-dot"></i> Live Highway Transit Corridor (N1)</span>
+            <span class="route-map-dist"><i class="fa-solid fa-bolt"></i> Express Transit • 248 km</span>
+          </div>
+          <div class="route-svg-wrap">
+            <svg viewBox="0 0 540 100" class="transit-map-svg">
+              <!-- Route background path -->
+              <path d="M 30 50 Q 150 15, 270 50 T 510 50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4" stroke-linecap="round"/>
+              <!-- Active glowing animated transit line -->
+              <path d="M 30 50 Q 150 15, 270 50 T 510 50" fill="none" stroke="url(#routeGlowGrad)" stroke-width="3" stroke-dasharray="6,6" stroke-linecap="round">
+                <animate attributeName="stroke-dashoffset" values="48;0" dur="2s" repeatCount="indefinite" />
+              </path>
+              <!-- Waypoints / Stations -->
+              <!-- Origin: Dhaka -->
+              <circle cx="30" cy="50" r="7" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
+              <text x="30" y="78" fill="#10b981" font-size="11" font-weight="700" text-anchor="middle">Dhaka VIP</text>
+              
+              <!-- Transit Stop 1: Cumilla -->
+              <circle cx="180" cy="38" r="4" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5"/>
+              <text x="180" y="24" fill="#94a3b8" font-size="9" text-anchor="middle">Cumilla Bypass</text>
+              
+              <!-- Transit Stop 2: Feni -->
+              <circle cx="340" cy="52" r="4" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5"/>
+              <text x="340" y="72" fill="#94a3b8" font-size="9" text-anchor="middle">Feni Express</text>
+              
+              <!-- Destination: Chattogram -->
+              <circle cx="510" cy="50" r="7" fill="#3b82f6" stroke="#ffffff" stroke-width="2"/>
+              <text x="500" y="78" fill="#60a5fa" font-size="11" font-weight="700" text-anchor="middle">Chattogram</text>
+
+              <!-- Gradient Defs -->
+              <defs>
+                <linearGradient id="routeGlowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#10b981"/>
+                  <stop offset="50%" stop-color="#38bdf8"/>
+                  <stop offset="100%" stop-color="#6366f1"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="route-map-footer">
+            <span style="font-size: 0.72rem; color: var(--text-muted);"><i class="fa-solid fa-satellite-dish"></i> GPS Tracking ID: PVT-SAT-9921</span>
+            <span style="font-size: 0.8rem; font-weight: 800; color: var(--accent-emerald);" id="ticket-total-fare-text">BDT 3,885.00</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Ticket Footer Strip with QR Code & Actions -->
+      <div class="ticket-footer-strip">
+        <div class="ticket-qr-box">
+          <div class="qr-placeholder" id="ticket-qrcode-wrap"></div>
+          <div>
+            <span style="font-size: 0.72rem; font-weight: 700; color: #ffffff; display: block;">Official Digital Pass</span>
+            <span style="font-size: 0.65rem; color: var(--text-muted);">Scan at boarding lounge or bus door</span>
+          </div>
+        </div>
+
+        <div class="ticket-actions-bar">
+          <button class="ticket-action-btn print-btn" onclick="printTicket()">
+            <i class="fa-solid fa-print"></i> Print E-Ticket
+          </button>
+          <button class="ticket-action-btn" onclick="closeTicketModal()">
+            <i class="fa-solid fa-check"></i> Done
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       MODAL 3: PNR LOOKUP MODAL
+       ============================================================================ -->
+  <div class="modal-overlay" id="pnr-lookup-modal">
+    <div class="payment-modal-box" style="max-width: 480px;">
+      <div class="payment-modal-header">
+        <h3><i class="fa-solid fa-ticket"></i> Find My E-Ticket</h3>
+        <button class="close-modal-x" onclick="closePnrLookupModal()">&times;</button>
+      </div>
+      <div style="padding: 1.75rem;">
+        <label class="filter-label">Enter 9-Character PNR Code</label>
+        <div class="route-input-wrap" style="margin-bottom: 1.25rem;">
+          <i class="fa-solid fa-magnifying-glass route-icon"></i>
+          <input type="text" id="lookup-pnr-input" class="route-input" placeholder="e.g. PVT-4091A or PNR PVT-4091A">
+        </div>
+        <button class="proceed-payment-cta" style="width: 100%;" onclick="executePnrSearch()">
+          <i class="fa-solid fa-search"></i> Search Reservation
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       MODAL 4: ROLE SWITCHER MODAL (RBAC)
+       ============================================================================ -->
+  <div class="modal-overlay" id="role-switcher-modal">
+    <div class="payment-modal-box" style="max-width: 500px;">
+      <div class="payment-modal-header">
+        <h3><i class="fa-solid fa-user-gear"></i> Switch Active Workspace Role</h3>
+        <button class="close-modal-x" onclick="closeRoleSwitcherModal()">&times;</button>
+      </div>
+      <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+        
+        <!-- User Option -->
+        <div class="glass-card" style="padding: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between;" onclick="selectRoleUser('usr-3')">
+          <div>
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">Passenger / Consumer View</h4>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Shuharthu Barua (Search, Seating map, MFS payments, E-ticket)</span>
+          </div>
+          <span class="role-badge user">USER</span>
+        </div>
+
+        <!-- Editor Option -->
+        <div class="glass-card" style="padding: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between;" onclick="selectRoleUser('usr-2')">
+          <div>
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">Counter Editor / Dispatcher</h4>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Farhana Yasmin (Schedule modifier, VIP blocking, Passenger manifest)</span>
+          </div>
+          <span class="role-badge editor">EDITOR</span>
+        </div>
+
+        <!-- Admin Option -->
+        <div class="glass-card" style="padding: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between;" onclick="selectRoleUser('usr-1')">
+          <div>
+            <h4 style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">Super Admin Command</h4>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Tariqul Islam (Financial audit, User roles, Supabase database sync)</span>
+          </div>
+          <span class="role-badge super_admin">SUPER ADMIN</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       MODAL 5: CREATE TRIP SCHEDULE (EDITOR DESK)
+       ============================================================================ -->
+  <div class="modal-overlay" id="create-trip-modal">
+    <div class="payment-modal-box" style="max-width: 580px;">
+      <div class="payment-modal-header">
+        <h3><i class="fa-solid fa-plus"></i> Add New Trip Schedule</h3>
+        <button class="close-modal-x" onclick="closeCreateTripModal()">&times;</button>
+      </div>
+      <div style="padding: 1.75rem; display: flex; flex-direction: column; gap: 1rem;">
+        
+        <div class="filter-form-group">
+          <label class="filter-label">Select Operating Bus Coach</label>
+          <select id="new-trip-bus-select" class="route-input" style="padding-left: 1rem;">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="filter-form-group">
+            <label class="filter-label">Origin City</label>
+            <input type="text" id="new-trip-origin" class="route-input" style="padding-left: 1rem;" placeholder="e.g. Dhaka">
+          </div>
+          <div class="filter-form-group">
+            <label class="filter-label">Destination City</label>
+            <input type="text" id="new-trip-dest" class="route-input" style="padding-left: 1rem;" placeholder="e.g. Chattogram">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="filter-form-group">
+            <label class="filter-label">Departure Time</label>
+            <input type="datetime-local" id="new-trip-dep-time" class="route-input" style="padding-left: 1rem;">
+          </div>
+          <div class="filter-form-group">
+            <label class="filter-label">Ticket Base Fare (BDT)</label>
+            <input type="number" id="new-trip-price" class="route-input" style="padding-left: 1rem;" placeholder="1850">
+          </div>
+        </div>
+
+        <div class="filter-form-group">
+          <label class="filter-label">Route Classification</label>
+          <select id="new-trip-route-type" class="route-input" style="padding-left: 1rem;">
+            <option value="Inter-City">Inter-City (Long-Haul)</option>
+            <option value="Inside-District">Inside-District (Local Regional)</option>
+          </select>
+        </div>
+
+        <button class="master-confirm-cta" onclick="submitNewTripSchedule()">
+          <i class="fa-solid fa-check"></i> Save & Publish Trip Schedule
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       MODAL 6: SUPABASE CONNECTION CONFIG (SUPER ADMIN & LIVE CONNECT)
+       ============================================================================ -->
+  <div class="modal-overlay" id="supabase-config-modal">
+    <div class="payment-modal-box" style="max-width: 540px;">
+      <div class="payment-modal-header">
+        <h3><i class="fa-solid fa-database" style="color: var(--accent-emerald);"></i> Supabase Database Integration</h3>
+        <button class="close-modal-x" onclick="closeSupabaseSettingsModal()">&times;</button>
+      </div>
+      <div style="padding: 1.75rem;">
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-md); padding: 0.85rem; margin-bottom: 1.25rem;">
+          <h5 style="color: var(--accent-emerald); font-size: 0.85rem; font-weight: 700; margin-bottom: 0.35rem;">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Dual-Mode Database Engine
+          </h5>
+          <p style="font-size: 0.78rem; color: #cbd5e1; line-height: 1.4;">
+            Provati Bus operates seamlessly in <strong>Dual-Mode</strong>:
+            Connect your live Supabase cloud project below, or enjoy full mock capability with local persistence and zero setup required.
+          </p>
+        </div>
+
+        <div class="filter-form-group">
+          <label class="filter-label">Supabase Project URL</label>
+          <input type="text" id="supabase-url-input" class="route-input" style="padding-left: 1rem;" placeholder="https://xyzproject.supabase.co">
+        </div>
+
+        <div class="filter-form-group">
+          <label class="filter-label">Supabase Public Anon Key (or publishable key)</label>
+          <input type="password" id="supabase-key-input" class="route-input" style="padding-left: 1rem;" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+        </div>
+
+        <!-- Connection Test Feedback Box -->
+        <div id="supabase-feedback-box" style="display: none; padding: 0.75rem; border-radius: 8px; font-size: 0.78rem; margin-bottom: 1rem;"></div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 1rem; margin-bottom: 1rem;">
+          <button class="proceed-payment-cta" style="flex: 1;" id="btn-supabase-connect" onclick="saveSupabaseSettings()">
+            <i class="fa-solid fa-plug"></i> Test & Connect Live
+          </button>
+          <button class="ticket-action-btn" onclick="clearSupabaseSettings()">
+            Disconnect
+          </button>
+        </div>
+
+        <div style="padding-top: 0.75rem; border-top: 1px dashed rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 0.72rem; color: var(--text-muted);"><i class="fa-solid fa-file-code"></i> Setup SQL Migration</span>
+          <button class="fleet-filter-btn" style="padding: 3px 8px; font-size: 0.72rem;" onclick="copySchemaSQL()">
+            <i class="fa-regular fa-copy"></i> Copy schema.sql
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toast Notification Container -->
+  <div class="toast-notification" id="app-toast">
+    <i class="fa-solid fa-circle-check" style="color: var(--accent-emerald); font-size: 1.2rem;"></i>
+    <span id="toast-message">Notification message</span>
+  </div>
+
+  <!-- Supabase Config & Core Application JS -->
+  <script src="supabase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
