@@ -1,0 +1,16 @@
+# Dependency directories
+node_modules/
+.venv/
+__pycache__/
+
+# Environment variables & secrets
+.env
+.env.local
+*.secret
+
+# Operating System & IDE Files
+.DS_Store
+Thumbs.db
+*.tmp
+.vscode/
+.idea/
