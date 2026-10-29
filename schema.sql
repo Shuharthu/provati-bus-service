@@ -162,10 +162,10 @@ FOR EACH ROW EXECUTE FUNCTION update_schedule_seat_count();
 -- ============================================================================
 -- REAL-TIME PUBLICATION CONFIG
 -- ============================================================================
--- Enable real-time listening for live schedule & seat synchronization
--- (Run in Supabase SQL editor)
--- ALTER PUBLICATION supabase_realtime ADD TABLE schedules;
--- ALTER PUBLICATION supabase_realtime ADD TABLE bookings;
+-- Automatically enables live WebSocket push so seat statuses and new bookings
+-- appear in real-time across all user screens without refreshing
+ALTER PUBLICATION supabase_realtime ADD TABLE schedules;
+ALTER PUBLICATION supabase_realtime ADD TABLE bookings;
 
 -- ============================================================================
 -- SEED DATA (THE 4 FLEET BUSES & AUTH PROFILES)
