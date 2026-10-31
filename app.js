@@ -101,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDatePicker();
     renderFleetCards();
     renderSchedules();
+    renderAdminWorkspace();
     setupEventListeners();
     setupDBListeners();
 
@@ -113,53 +114,72 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 150);
   }
 
-  // Set today's date in date picker
+  // Set today's date in date pickers
   function initDatePicker() {
     const picker = document.getElementById('travel-date-picker');
+    const heroPicker = document.getElementById('hero-date-picker');
+    const today = new Date().toISOString().split('T')[0];
     if (picker) {
-      const today = new Date().toISOString().split('T')[0];
       picker.value = today;
       picker.min = today;
+    }
+    if (heroPicker) {
+      heroPicker.value = today;
+      heroPicker.min = today;
     }
   }
 
   // ============================================================================
-  // RBAC & WORKSPACE VIEW NAVIGATION
+  // RBAC & WORKSPACE VIEW NAVIGATION (SCROLLING PAGE + PORTAL TABS)
   // ============================================================================
   window.switchView = function(viewRole) {
-    const userView = document.getElementById('user-booking-view');
-    const editorView = document.getElementById('editor-workspace-view');
-    const adminView = document.getElementById('admin-workspace-view');
-
-    const navBookingBtn = document.getElementById('nav-booking-btn');
-    const navEditorBtn = document.getElementById('nav-editor-btn');
-    const navAdminBtn = document.getElementById('nav-admin-btn');
-
-    // Remove active from all nav buttons
-    [navBookingBtn, navEditorBtn, navAdminBtn].forEach(b => b?.classList.remove('active'));
-
-    // Hide all view panels
-    userView.style.display = 'none';
-    editorView.classList.remove('active');
-    adminView.classList.remove('active');
+    state.activeRole = viewRole;
+    updateActiveUserUI();
 
     if (viewRole === 'editor') {
-      editorView.classList.add('active');
-      navEditorBtn?.classList.add('active');
-      renderEditorWorkspace();
-      showToast('Switched to Counter Editor Workspace');
-    } else if (viewRole === 'admin') {
-      adminView.classList.add('active');
-      navAdminBtn?.classList.add('active');
-      renderAdminWorkspace();
+      switchPortalTab('editor');
+      const portalSec = document.getElementById('portal-section');
+      if (portalSec) {
+        portalSec.scrollIntoView({ behavior: 'smooth' });
+      }
+      showToast('Switched to Counter Dispatcher Hub');
+    } else if (viewRole === 'admin' || viewRole === 'super_admin') {
+      switchPortalTab('admin');
+      const portalSec = document.getElementById('portal-section');
+      if (portalSec) {
+        portalSec.scrollIntoView({ behavior: 'smooth' });
+      }
       showToast('Switched to Super Admin Command');
     } else {
-      userView.style.display = 'block';
-      navBookingBtn?.classList.add('active');
-      renderSchedules();
+      const bookingSec = document.getElementById('booking-section');
+      if (bookingSec) {
+        bookingSec.scrollIntoView({ behavior: 'smooth' });
+      }
+      showToast('Switched to Passenger Booking Mode');
     }
+  };
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.switchPortalTab = function(tabName) {
+    const tabs = ['analytics', 'editor', 'admin'];
+    tabs.forEach(t => {
+      const tabBtn = document.getElementById(`tab-portal-${t}`);
+      const panel = document.getElementById(`panel-portal-${t}`);
+      if (t === tabName) {
+        tabBtn?.classList.add('active');
+        panel?.classList.add('active');
+      } else {
+        tabBtn?.classList.remove('active');
+        panel?.classList.remove('active');
+      }
+    });
+
+    if (tabName === 'analytics') {
+      renderAdminWorkspace();
+    } else if (tabName === 'editor') {
+      renderEditorWorkspace();
+    } else if (tabName === 'admin') {
+      renderAdminWorkspace();
+    }
   };
 
   function updateActiveUserUI() {
@@ -168,6 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const nameEl = document.getElementById('active-user-name');
     const badgeEl = document.getElementById('active-role-badge');
+    const portalRoleEl = document.getElementById('portal-current-role-text');
     const passNameInput = document.getElementById('passenger-name-input');
     const passPhoneInput = document.getElementById('passenger-phone-input');
 
@@ -175,6 +196,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (badgeEl) {
       badgeEl.className = `role-badge ${user.role}`;
       badgeEl.textContent = user.role.replace('_', ' ');
+    }
+    if (portalRoleEl) {
+      portalRoleEl.textContent = user.role === 'super_admin' ? 'Super Administrator' : user.role === 'editor' ? 'Counter Dispatcher (Editor)' : 'Passenger (User)';
     }
 
     if (passNameInput && user.role === 'user') passNameInput.value = user.full_name.split(' (')[0];
@@ -266,19 +290,38 @@ document.addEventListener('DOMContentLoaded', () => {
     state.filters.route_type = type;
     const interBtn = document.getElementById('toggle-intercity');
     const distBtn = document.getElementById('toggle-district');
+    const heroInter = document.getElementById('hero-toggle-intercity');
+    const heroDist = document.getElementById('hero-toggle-district');
+
+    const originInput = document.getElementById('origin-input');
+    const destInput = document.getElementById('dest-input');
+    const heroOrigin = document.getElementById('hero-origin-input');
+    const heroDest = document.getElementById('hero-dest-input');
 
     if (type === 'Inter-City') {
-      interBtn.classList.add('active');
-      distBtn.classList.remove('active');
-      document.getElementById('origin-input').value = 'Dhaka';
-      document.getElementById('dest-input').value = 'Chattogram';
+      interBtn?.classList.add('active');
+      distBtn?.classList.remove('active');
+      heroInter?.classList.add('active');
+      heroDist?.classList.remove('active');
+
+      if (originInput) originInput.value = 'Dhaka';
+      if (destInput) destInput.value = 'Chattogram';
+      if (heroOrigin) heroOrigin.value = 'Dhaka';
+      if (heroDest) heroDest.value = 'Chattogram';
+
       state.filters.origin = 'Dhaka';
       state.filters.destination = 'Chattogram';
     } else {
-      distBtn.classList.add('active');
-      interBtn.classList.remove('active');
-      document.getElementById('origin-input').value = 'Chattogram';
-      document.getElementById('dest-input').value = 'Hathazari';
+      distBtn?.classList.add('active');
+      interBtn?.classList.remove('active');
+      heroDist?.classList.add('active');
+      heroInter?.classList.remove('active');
+
+      if (originInput) originInput.value = 'Chattogram';
+      if (destInput) destInput.value = 'Hathazari';
+      if (heroOrigin) heroOrigin.value = 'Chattogram';
+      if (heroDest) heroDest.value = 'Hathazari';
+
       state.filters.origin = 'Chattogram';
       state.filters.destination = 'Hathazari';
     }
@@ -289,13 +332,116 @@ document.addEventListener('DOMContentLoaded', () => {
   window.swapOriginDestination = function() {
     const originInput = document.getElementById('origin-input');
     const destInput = document.getElementById('dest-input');
-    const temp = originInput.value;
-    originInput.value = destInput.value;
-    destInput.value = temp;
+    const heroOrigin = document.getElementById('hero-origin-input');
+    const heroDest = document.getElementById('hero-dest-input');
 
-    state.filters.origin = originInput.value;
-    state.filters.destination = destInput.value;
+    const prevOrigin = originInput ? originInput.value : (heroOrigin ? heroOrigin.value : '');
+    const prevDest = destInput ? destInput.value : (heroDest ? heroDest.value : '');
+
+    if (originInput) originInput.value = prevDest;
+    if (destInput) destInput.value = prevOrigin;
+    if (heroOrigin) heroOrigin.value = prevDest;
+    if (heroDest) heroDest.value = prevOrigin;
+
+    state.filters.origin = prevDest;
+    state.filters.destination = prevOrigin;
     renderSchedules();
+  };
+
+  window.syncHeroInputs = function(type, val) {
+    if (type === 'origin') {
+      state.filters.origin = val;
+      const sideOrigin = document.getElementById('origin-input');
+      if (sideOrigin) sideOrigin.value = val;
+      renderAutosuggest('hero-origin', val);
+    } else if (type === 'dest') {
+      state.filters.destination = val;
+      const sideDest = document.getElementById('dest-input');
+      if (sideDest) sideDest.value = val;
+      renderAutosuggest('hero-dest', val);
+    }
+    renderSchedules();
+  };
+
+  window.syncHeroDate = function(val) {
+    const sidePicker = document.getElementById('travel-date-picker');
+    if (sidePicker) sidePicker.value = val;
+  };
+
+  window.executeHeroSearch = function() {
+    const heroOrigin = document.getElementById('hero-origin-input');
+    const heroDest = document.getElementById('hero-dest-input');
+    const origin = heroOrigin ? heroOrigin.value.trim() : '';
+    const dest = heroDest ? heroDest.value.trim() : '';
+
+    state.filters.origin = origin;
+    state.filters.destination = dest;
+
+    const sideOrigin = document.getElementById('origin-input');
+    const sideDest = document.getElementById('dest-input');
+    if (sideOrigin) sideOrigin.value = origin;
+    if (sideDest) sideDest.value = dest;
+
+    renderSchedules();
+
+    const bookingSection = document.getElementById('booking-section');
+    if (bookingSection) {
+      bookingSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    showToast(`Searching departures: ${origin || 'All'} ➔ ${dest || 'All'}`);
+  };
+
+  window.quickSelectRoute = function(origin, dest, category) {
+    state.filters.origin = origin;
+    state.filters.destination = dest;
+    if (category) state.filters.coach_category = category;
+
+    const sideOrigin = document.getElementById('origin-input');
+    const sideDest = document.getElementById('dest-input');
+    const heroOrigin = document.getElementById('hero-origin-input');
+    const heroDest = document.getElementById('hero-dest-input');
+
+    if (sideOrigin) sideOrigin.value = origin;
+    if (sideDest) sideDest.value = dest;
+    if (heroOrigin) heroOrigin.value = origin;
+    if (heroDest) heroDest.value = dest;
+
+    if (dest === 'Hathazari' || origin === 'Hathazari') {
+      setRouteTypeFilter('Inside-District');
+    } else {
+      setRouteTypeFilter('Inter-City');
+    }
+
+    renderSchedules();
+
+    const bookingSection = document.getElementById('booking-section');
+    if (bookingSection) {
+      bookingSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    showToast(`Route selected: ${origin} ➔ ${dest} (${category || 'All Fleet'})`);
+  };
+
+  window.executeInlinePnrSearch = function() {
+    const input = document.getElementById('inline-pnr-input');
+    if (!input) return;
+    const pnr = input.value.trim().toUpperCase();
+    if (!pnr) {
+      showToast('Please enter a PNR code (e.g. PVT-4091A)');
+      return;
+    }
+    const cleanPnr = pnr.startsWith('PNR ') ? pnr.replace('PNR ', '').trim() : pnr;
+    let booking = window.provatiDB.getBookingByPNR(pnr) || window.provatiDB.getBookingByPNR(cleanPnr);
+    if (!booking) {
+      const allBookings = window.provatiDB.getBookings();
+      booking = allBookings.find(b => b.pnr_code.toUpperCase() === pnr || b.pnr_code.toUpperCase() === cleanPnr || b.pnr_code.toUpperCase().includes(cleanPnr));
+    }
+
+    if (booking) {
+      openETicketModal(booking);
+      showToast(`Boarding Pass retrieved for ${booking.passenger_name}`);
+    } else {
+      showToast(`No booking record found for PNR: ${pnr}`);
+    }
   };
 
   window.setServiceFilter = function(serviceType, btn) {
@@ -322,8 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (checkbox) {
       checkbox.checked = true;
       togglePrebookingFilter(true);
-      switchView('user');
-      const schedSection = document.querySelector('.booking-engine-section');
+      const schedSection = document.getElementById('booking-section');
       schedSection?.scrollIntoView({ behavior: 'smooth' });
     }
   };
@@ -338,11 +483,23 @@ document.addEventListener('DOMContentLoaded', () => {
       is_prebooking: false
     };
 
-    document.getElementById('origin-input').value = '';
-    document.getElementById('dest-input').value = '';
-    document.getElementById('prebooking-checkbox').checked = false;
-    document.getElementById('toggle-intercity').classList.add('active');
-    document.getElementById('toggle-district').classList.remove('active');
+    const originInput = document.getElementById('origin-input');
+    const destInput = document.getElementById('dest-input');
+    const heroOrigin = document.getElementById('hero-origin-input');
+    const heroDest = document.getElementById('hero-dest-input');
+    if (originInput) originInput.value = '';
+    if (destInput) destInput.value = '';
+    if (heroOrigin) heroOrigin.value = '';
+    if (heroDest) heroDest.value = '';
+
+    const prebox = document.getElementById('prebooking-checkbox');
+    if (prebox) prebox.checked = false;
+
+    document.getElementById('toggle-intercity')?.classList.add('active');
+    document.getElementById('toggle-district')?.classList.remove('active');
+    document.getElementById('hero-toggle-intercity')?.classList.add('active');
+    document.getElementById('hero-toggle-district')?.classList.remove('active');
+
     document.querySelectorAll('.service-pill-btn').forEach((b, i) => {
       b.classList.toggle('active', i === 0);
     });
@@ -367,6 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderAutosuggest(type, query) {
     const listEl = document.getElementById(`${type}-suggest-list`);
+    if (!listEl) return;
     if (!query || query.length < 1) {
       listEl.classList.remove('active');
       return;
@@ -387,16 +545,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.selectSuggestedCity = function(type, city) {
-    const input = document.getElementById(`${type}-input`);
-    input.value = city;
-    state.filters[type === 'origin' ? 'origin' : 'destination'] = city;
-    document.getElementById(`${type}-suggest-list`).classList.remove('active');
+    const isOrigin = (type === 'origin' || type === 'hero-origin');
+    const key = isOrigin ? 'origin' : 'destination';
+    state.filters[key] = city;
+
+    const sideEl = document.getElementById(isOrigin ? 'origin-input' : 'dest-input');
+    const heroEl = document.getElementById(isOrigin ? 'hero-origin-input' : 'hero-dest-input');
+    if (sideEl) sideEl.value = city;
+    if (heroEl) heroEl.value = city;
+
+    document.querySelectorAll('.autosuggest-list').forEach(l => l.classList.remove('active'));
     renderSchedules();
   };
 
   // Close suggests on click outside
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.route-input-wrap')) {
+    if (!e.target.closest('.route-input-wrap') && !e.target.closest('.hero-input-field-wrap')) {
       document.querySelectorAll('.autosuggest-list').forEach(l => l.classList.remove('active'));
     }
   });
@@ -1373,9 +1537,63 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ============================================================================
-  // EVENT LISTENERS & TOAST NOTIFICATION
+  // EVENT LISTENERS, SCROLLSPY & TOAST NOTIFICATION
   // ============================================================================
+  function setupScrollInteractions() {
+    const siteHeader = document.getElementById('site-header');
+    const backTopBtn = document.getElementById('floating-back-top');
+    const navLinks = document.querySelectorAll('.nav-scroll-link');
+    const sections = document.querySelectorAll('section[id]');
+
+    // Header sticky transition and back-to-top button visibility
+    window.addEventListener('scroll', () => {
+      const scrollY = window.scrollY;
+
+      if (scrollY > 60) {
+        siteHeader?.classList.add('scrolled');
+      } else {
+        siteHeader?.classList.remove('scrolled');
+      }
+
+      if (scrollY > 380) {
+        backTopBtn?.classList.add('show');
+      } else {
+        backTopBtn?.classList.remove('show');
+      }
+    }, { passive: true });
+
+    // IntersectionObserver for scrollspy navigation highlights
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute('id');
+            navLinks.forEach(link => {
+              const target = link.getAttribute('data-target') || link.getAttribute('href')?.replace('#', '');
+              if (target === id) {
+                link.classList.add('active');
+              } else {
+                link.classList.remove('active');
+              }
+            });
+          }
+        });
+      }, {
+        rootMargin: '-20% 0px -65% 0px',
+        threshold: 0
+      });
+
+      sections.forEach(sec => observer.observe(sec));
+    }
+  }
+
+  window.scrollToTop = function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   function setupEventListeners() {
+    setupScrollInteractions();
+
     // Escape key closes open modals
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
