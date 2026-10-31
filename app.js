@@ -30,11 +30,29 @@ document.addEventListener('DOMContentLoaded', () => {
   // Expose state for debugging and modal handlers
   window.appState = state;
 
-  // City Autocomplete Dictionary
+  // City Autocomplete Dictionary & Rich Station Terminal Directory
   const POPULAR_CITIES = [
     'Dhaka', 'Chattogram', "Cox's Bazar", 'Sylhet', 'Cumilla', 'Feni',
     'Brahmanbaria', 'Rangamati', 'Bandarban', 'Bogura', 'Rajshahi',
     'Khulna', 'Barishal', 'Hathazari', 'Fatikchhari', 'Narayanganj', 'Sonargaon'
+  ];
+
+  const STATION_DIRECTORY = [
+    { city: 'Chattogram', terminal: 'Dampara Provati Lounge', routeType: 'Inter-City' },
+    { city: 'Chattogram', terminal: 'Muradpur Bus Stand & GEC Bay', routeType: 'Inside-District' },
+    { city: 'Hathazari', terminal: 'Hathazari Bus Terminal & CU Gate', routeType: 'Inside-District' },
+    { city: 'Dhaka', terminal: 'Sayedabad VIP Central Gate 3', routeType: 'Inter-City' },
+    { city: 'Dhaka', terminal: 'Arambagh Royal Lounge', routeType: 'Inter-City' },
+    { city: 'Dhaka', terminal: 'Mohakhali Inter-District Platform', routeType: 'Inter-City' },
+    { city: "Cox's Bazar", terminal: 'Kolatoli Beach Circle VIP Counter', routeType: 'Inter-City' },
+    { city: 'Sylhet', terminal: 'Kadamtoli Main Highway Terminal', routeType: 'Inter-City' },
+    { city: 'Cumilla', terminal: 'Paduar Bazar Bishwa Road Crossway', routeType: 'Inter-City' },
+    { city: 'Feni', terminal: 'Feni Trunk Road Grand Counter', routeType: 'Inter-City' },
+    { city: 'Narayanganj', terminal: 'Chashara Central Bus Station', routeType: 'Inside-District' },
+    { city: 'Sonargaon', terminal: 'Mograpara Highway Crossway', routeType: 'Inside-District' },
+    { city: 'Brahmanbaria', terminal: 'Kowtoli Central Terminal', routeType: 'Inter-City' },
+    { city: 'Rangamati', terminal: 'Reserve Bazar Hill Tracts Bay', routeType: 'Inter-City' },
+    { city: 'Bandarban', terminal: 'Bandarban Central Bus Bay', routeType: 'Inter-City' }
   ];
 
   // ============================================================================
@@ -467,6 +485,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const heroOrigin = document.getElementById('hero-origin-input');
     const heroDest = document.getElementById('hero-dest-input');
 
+    const originHint = document.getElementById('origin-terminal-hint');
+    const destHint = document.getElementById('dest-terminal-hint');
+
     if (type === 'Inter-City') {
       interBtn?.classList.add('active');
       distBtn?.classList.remove('active');
@@ -477,6 +498,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (destInput) destInput.value = 'Chattogram';
       if (heroOrigin) heroOrigin.value = 'Dhaka';
       if (heroDest) heroDest.value = 'Chattogram';
+      if (originHint) originHint.textContent = 'Sayedabad VIP';
+      if (destHint) destHint.textContent = 'Dampara Lounge';
 
       state.filters.origin = 'Dhaka';
       state.filters.destination = 'Chattogram';
@@ -490,6 +513,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (destInput) destInput.value = 'Hathazari';
       if (heroOrigin) heroOrigin.value = 'Chattogram';
       if (heroDest) heroDest.value = 'Hathazari';
+      if (originHint) originHint.textContent = 'Muradpur Bay';
+      if (destHint) destHint.textContent = 'Hathazari Term.';
 
       state.filters.origin = 'Chattogram';
       state.filters.destination = 'Hathazari';
@@ -511,6 +536,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (destInput) destInput.value = prevOrigin;
     if (heroOrigin) heroOrigin.value = prevDest;
     if (heroDest) heroDest.value = prevOrigin;
+
+    // Swap terminal hints if present
+    const originHint = document.getElementById('origin-terminal-hint');
+    const destHint = document.getElementById('dest-terminal-hint');
+    if (originHint && destHint) {
+      const tempHint = originHint.textContent;
+      originHint.textContent = destHint.textContent;
+      destHint.textContent = tempHint;
+    }
 
     state.filters.origin = prevDest;
     state.filters.destination = prevOrigin;
@@ -535,6 +569,14 @@ document.addEventListener('DOMContentLoaded', () => {
   window.syncHeroDate = function(val) {
     const sidePicker = document.getElementById('travel-date-picker');
     if (sidePicker) sidePicker.value = val;
+    const dayEl = document.getElementById('hero-date-dayname');
+    if (dayEl && val) {
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) {
+        const dayStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        dayEl.textContent = dayStr;
+      }
+    }
   };
 
   window.executeHeroSearch = function() {
@@ -697,24 +739,66 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderAutosuggest(type, query) {
     const listEl = document.getElementById(`${type}-suggest-list`);
     if (!listEl) return;
-    if (!query || query.length < 1) {
+    if (!query || query.trim().length < 1) {
       listEl.classList.remove('active');
       return;
     }
 
-    const matches = POPULAR_CITIES.filter(c => c.toLowerCase().includes(query.toLowerCase()));
+    const q = query.toLowerCase().trim();
+    // Search both cities and terminals
+    const matches = STATION_DIRECTORY.filter(s => 
+      s.city.toLowerCase().includes(q) || s.terminal.toLowerCase().includes(q)
+    );
+
     if (matches.length === 0) {
-      listEl.classList.remove('active');
+      // Fallback to city names if no terminal match
+      const cityMatches = POPULAR_CITIES.filter(c => c.toLowerCase().includes(q));
+      if (cityMatches.length === 0) {
+        listEl.classList.remove('active');
+        return;
+      }
+      listEl.innerHTML = cityMatches.slice(0, 5).map(c => `
+        <div class="autosuggest-item" onclick="selectSuggestedStation('${type}', '${c}', '${c} Main Terminal', 'Inter-City')">
+          <div class="autosuggest-city-wrap">
+            <div class="autosuggest-city-name">
+              <i class="fa-solid fa-location-dot" style="color: var(--accent-emerald);"></i>
+              <span>${c}</span>
+            </div>
+            <div class="autosuggest-terminal-name">${c} Passenger Counter & Bay</div>
+          </div>
+          <span class="autosuggest-type-badge">Express Route</span>
+        </div>
+      `).join('');
+      listEl.classList.add('active');
       return;
     }
 
-    listEl.innerHTML = matches.map(city => `
-      <div class="autosuggest-item" onclick="selectSuggestedCity('${type}', '${city}')">
-        <i class="fa-solid fa-location-dot" style="color: var(--accent-emerald);"></i> ${city}
+    listEl.innerHTML = matches.slice(0, 6).map(s => `
+      <div class="autosuggest-item" onclick="selectSuggestedStation('${type}', '${s.city}', '${s.terminal}', '${s.routeType}')">
+        <div class="autosuggest-city-wrap">
+          <div class="autosuggest-city-name">
+            <i class="fa-solid fa-location-dot" style="color: ${s.routeType === 'Inside-District' ? 'var(--contrast-coral)' : 'var(--accent-emerald)'};"></i>
+            <span>${s.city}</span>
+          </div>
+          <div class="autosuggest-terminal-name">${s.terminal}</div>
+        </div>
+        <span class="autosuggest-type-badge">${s.routeType === 'Inside-District' ? 'Regional Local' : 'Inter-City'}</span>
       </div>
     `).join('');
     listEl.classList.add('active');
   }
+
+  window.selectSuggestedStation = function(type, city, terminal, routeType) {
+    selectSuggestedCity(type, city);
+    const isOrigin = (type === 'origin' || type === 'hero-origin');
+    const hintEl = document.getElementById(isOrigin ? 'origin-terminal-hint' : 'dest-terminal-hint');
+    if (hintEl && terminal) {
+      hintEl.textContent = terminal.split(',')[0].replace('Terminal', 'Term.');
+    }
+    if (routeType) {
+      setRouteTypeFilter(routeType);
+    }
+  };
 
   window.selectSuggestedCity = function(type, city) {
     const isOrigin = (type === 'origin' || type === 'hero-origin');
@@ -732,7 +816,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Close suggests on click outside
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.route-input-wrap') && !e.target.closest('.hero-input-field-wrap')) {
+    if (!e.target.closest('.hero-field-unit') && !e.target.closest('.route-input-wrap') && !e.target.closest('.hero-input-field-wrap')) {
       document.querySelectorAll('.autosuggest-list').forEach(l => l.classList.remove('active'));
     }
   });

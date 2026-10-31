@@ -152,82 +152,145 @@
       <!-- Floating Quick Search Booking Engine Bar -->
       <div class="hero-search-container" id="hero-quick-search">
         
+        <!-- Top Toolbar Row: Route Type Toggle & Advance Booking Indicator -->
         <div class="hero-search-tabs-row">
-          <div class="segmented-toggle-group" style="margin-bottom: 0;">
-            <button class="seg-toggle-btn active" id="hero-toggle-intercity" onclick="setRouteTypeFilter('Inter-City')">
-              <i class="fa-solid fa-signs-post"></i> Inter-City (Long-Haul)
+          <div class="hero-segment-switch">
+            <button type="button" class="hero-switch-btn active" id="hero-toggle-intercity" onclick="setRouteTypeFilter('Inter-City')">
+              <i class="fa-solid fa-plane-departure"></i>
+              <span>Inter-City (Long-Haul)</span>
             </button>
-            <button class="seg-toggle-btn" id="hero-toggle-district" onclick="setRouteTypeFilter('Inside-District')">
-              <i class="fa-solid fa-map-pin"></i> Inside-District (Local)
+            <button type="button" class="hero-switch-btn" id="hero-toggle-district" onclick="setRouteTypeFilter('Inside-District')">
+              <i class="fa-solid fa-map-location-dot"></i>
+              <span>Inside-District (Local)</span>
             </button>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--dawn-amber);">
-            <i class="fa-solid fa-lock"></i>
-            <span>15–90 Days Holiday Pre-Booking Active</span>
+          <div class="hero-advance-badge">
+            <span class="advance-pulse-dot"></span>
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>15–90 Days Advance Pre-Booking Active</span>
           </div>
         </div>
 
-        <!-- 4-Column Quick Form -->
+        <!-- 5-Column Luxury Unified Search Grid -->
         <div class="hero-search-inputs-grid">
           
-          <!-- Origin -->
-          <div class="hero-input-box">
-            <label class="hero-input-label" for="hero-origin-input">Departure Station (Origin)</label>
-            <div class="hero-input-field-wrap">
-              <i class="fa-solid fa-circle-dot route-icon"></i>
-              <input type="text" id="hero-origin-input" class="hero-input-field" placeholder="e.g. Dhaka" value="Dhaka" autocomplete="off" oninput="syncHeroInputs('origin', this.value)">
+          <!-- Column 1: Departure Origin -->
+          <div class="hero-field-unit" id="unit-origin">
+            <div class="hero-field-header">
+              <span class="hero-field-tag">
+                <i class="fa-solid fa-circle-dot" style="color: var(--accent-emerald);"></i>
+                <span>Departure Station (Origin)</span>
+              </span>
+              <span class="hero-field-terminal-hint" id="origin-terminal-hint">VIP Terminal</span>
+            </div>
+            <div class="hero-field-body">
+              <input 
+                type="text" 
+                id="hero-origin-input" 
+                class="hero-unit-input" 
+                placeholder="Enter origin city or terminal..." 
+                value="Dhaka" 
+                autocomplete="off" 
+                oninput="syncHeroInputs('origin', this.value)"
+                onfocus="renderAutosuggest('hero-origin', this.value || 'Dhaka')"
+              />
             </div>
             <div class="autosuggest-list" id="hero-origin-suggest-list"></div>
           </div>
 
-          <!-- Swap Button -->
-          <button class="hero-swap-center-btn" onclick="swapOriginDestination()" title="Swap Stations">
-            <i class="fa-solid fa-arrows-left-right"></i>
-          </button>
+          <!-- Column 2: Quick Swap Button -->
+          <div class="hero-swap-col">
+            <button type="button" class="hero-swap-center-btn" onclick="swapOriginDestination()" title="Swap Origin & Destination Stations">
+              <i class="fa-solid fa-arrows-left-right"></i>
+            </button>
+          </div>
 
-          <!-- Destination -->
-          <div class="hero-input-box">
-            <label class="hero-input-label" for="hero-dest-input">Arrival Station (Destination)</label>
-            <div class="hero-input-field-wrap">
-              <i class="fa-solid fa-location-dot route-icon dest"></i>
-              <input type="text" id="hero-dest-input" class="hero-input-field" placeholder="e.g. Chattogram" value="Chattogram" autocomplete="off" oninput="syncHeroInputs('dest', this.value)">
+          <!-- Column 3: Arrival Destination -->
+          <div class="hero-field-unit" id="unit-dest">
+            <div class="hero-field-header">
+              <span class="hero-field-tag">
+                <i class="fa-solid fa-location-dot" style="color: var(--contrast-coral);"></i>
+                <span>Arrival Station (Destination)</span>
+              </span>
+              <span class="hero-field-terminal-hint" id="dest-terminal-hint">Lounge Stop</span>
+            </div>
+            <div class="hero-field-body">
+              <input 
+                type="text" 
+                id="hero-dest-input" 
+                class="hero-unit-input" 
+                placeholder="Enter destination city or terminal..." 
+                value="Chattogram" 
+                autocomplete="off" 
+                oninput="syncHeroInputs('dest', this.value)"
+                onfocus="renderAutosuggest('hero-dest', this.value || 'Chattogram')"
+              />
             </div>
             <div class="autosuggest-list" id="hero-dest-suggest-list"></div>
           </div>
 
-          <!-- Journey Date -->
-          <div class="hero-input-box">
-            <label class="hero-input-label" for="hero-date-picker">Date of Journey</label>
-            <div class="hero-input-field-wrap">
-              <input type="date" id="hero-date-picker" class="hero-input-field" style="padding-left: 1rem;" onchange="syncHeroDate(this.value)">
+          <!-- Column 4: Journey Date -->
+          <div class="hero-field-unit" id="unit-date">
+            <div class="hero-field-header">
+              <span class="hero-field-tag">
+                <i class="fa-regular fa-calendar-days" style="color: var(--dawn-amber);"></i>
+                <span>Date of Journey</span>
+              </span>
+              <span class="hero-field-terminal-hint" id="hero-date-dayname">Today</span>
+            </div>
+            <div class="hero-field-body">
+              <input 
+                type="date" 
+                id="hero-date-picker" 
+                class="hero-unit-input hero-date-field" 
+                onchange="syncHeroDate(this.value)"
+              />
             </div>
           </div>
 
-          <!-- Search CTA -->
-          <button class="hero-search-submit-btn" onclick="executeHeroSearch()">
-            <i class="fa-solid fa-magnifying-glass"></i> Search Buses
-          </button>
+          <!-- Column 5: Search CTA -->
+          <div class="hero-submit-col">
+            <button type="button" class="hero-search-submit-btn" onclick="executeHeroSearch()">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span>Search Buses</span>
+            </button>
+          </div>
 
         </div>
 
       </div>
 
-      <!-- Quick Popular Route Chips -->
+      <!-- Quick Popular Highway Corridor Chips -->
       <div class="hero-popular-strip">
-        <span class="hero-popular-label"><i class="fa-solid fa-fire" style="color: var(--dawn-amber);"></i> Popular Highways:</span>
-        <div class="popular-route-pill" onclick="quickSelectRoute('Dhaka', 'Cox\'s Bazar', 'Sleeper')">
-          Dhaka ➔ Cox's Bazar <span class="fare-tag">BDT 2,400</span>
-        </div>
-        <div class="popular-route-pill" onclick="quickSelectRoute('Dhaka', 'Chattogram', 'Business')">
-          Dhaka ➔ Chattogram <span class="fare-tag">BDT 1,200</span>
-        </div>
-        <div class="popular-route-pill" onclick="quickSelectRoute('Dhaka', 'Sylhet', 'Highway')">
-          Dhaka ➔ Sylhet <span class="fare-tag">BDT 680</span>
-        </div>
-        <div class="popular-route-pill" onclick="quickSelectRoute('Chattogram', 'Hathazari', 'Commuter')">
-          Chattogram ➔ Hathazari <span class="fare-tag">BDT 150</span>
-        </div>
+        <span class="hero-popular-label">
+          <i class="fa-solid fa-fire" style="color: var(--dawn-amber);"></i>
+          <span>Popular Highways:</span>
+        </span>
+        <button type="button" class="popular-route-pill" onclick="quickSelectRoute('Dhaka', 'Cox\'s Bazar', 'Sleeper')">
+          <span>Dhaka</span>
+          <i class="fa-solid fa-arrow-right-long route-arrow-icon"></i>
+          <span>Cox's Bazar</span>
+          <span class="fare-tag">BDT 2,400</span>
+        </button>
+        <button type="button" class="popular-route-pill" onclick="quickSelectRoute('Dhaka', 'Chattogram', 'Business')">
+          <span>Dhaka</span>
+          <i class="fa-solid fa-arrow-right-long route-arrow-icon"></i>
+          <span>Chattogram</span>
+          <span class="fare-tag">BDT 1,200</span>
+        </button>
+        <button type="button" class="popular-route-pill" onclick="quickSelectRoute('Dhaka', 'Sylhet', 'Highway')">
+          <span>Dhaka</span>
+          <i class="fa-solid fa-arrow-right-long route-arrow-icon"></i>
+          <span>Sylhet</span>
+          <span class="fare-tag">BDT 680</span>
+        </button>
+        <button type="button" class="popular-route-pill" onclick="quickSelectRoute('Chattogram', 'Hathazari', 'Commuter')">
+          <span>Chattogram</span>
+          <i class="fa-solid fa-arrow-right-long route-arrow-icon"></i>
+          <span>Hathazari</span>
+          <span class="fare-tag">BDT 150</span>
+        </button>
       </div>
 
       <!-- Spotlight Luxury Fleet Visual Showcase Banner -->
