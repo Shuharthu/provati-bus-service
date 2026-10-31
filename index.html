@@ -59,7 +59,7 @@
       
       <!-- Brand Logo & Tagline -->
       <a href="#hero" class="brand-wrapper">
-        <img src="assets/logo.png" alt="Provati Bus Service Logo" class="brand-logo-img">
+        <img src="assets/logo-transparent.png" alt="Provati Bus Service Logo" class="brand-logo-img">
         <div class="brand-text-block">
           <div class="brand-title">
             Provati <span class="accent">Bus Service</span>
@@ -71,7 +71,7 @@
       </a>
 
       <!-- Smooth Scroll Navigation Links (Scrollspy) -->
-      <nav class="nav-scroll-links">
+      <nav class="nav-scroll-links" id="nav-scroll-links">
         <a href="#hero" class="nav-scroll-link active" data-target="hero">
           <i class="fa-solid fa-house"></i> Home
         </a>
@@ -100,7 +100,7 @@
         <!-- Live Supabase Status Pill -->
         <div class="supabase-status-pill" id="supabase-status-pill" onclick="openSupabaseSettingsModal()" title="Supabase Database Connection Status (Click to configure)">
           <span class="status-indicator-dot local" id="supabase-status-dot"></span>
-          <span id="supabase-status-text">Local Engine</span>
+          <span id="supabase-status-text">Supabase Live</span>
         </div>
 
         <!-- Live Role Switcher Dropdown Pill -->
@@ -114,6 +114,11 @@
         <a href="#booking-section" class="nav-cta-btn">
           <i class="fa-solid fa-couch"></i> <span>Book Seats</span>
         </a>
+
+        <!-- Mobile Navigation Hamburger Toggle -->
+        <button class="nav-mobile-toggle" id="nav-mobile-toggle" onclick="toggleMobileNav()" aria-label="Toggle Navigation Menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
       </div>
 
     </div>
@@ -1279,7 +1284,7 @@
         <!-- Brand Info -->
         <div class="footer-brand-col">
           <div class="brand-wrapper">
-            <img src="assets/logo.png" alt="Provati Logo" class="brand-logo-img">
+            <img src="assets/logo-transparent.png" alt="Provati Logo" class="brand-logo-img">
             <div class="brand-text-block">
               <div class="brand-title">
                 Provati <span class="accent">Bus Service</span>
