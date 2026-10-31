@@ -2437,6 +2437,375 @@ input:checked + .slider:before {
   gap: 1.5rem;
 }
 
+/* ============================================================================
+   5.1 INTERACTIVE SATELLITE HIGHWAY RADAR MAP
+   ============================================================================ */
+.routes-radar-map-container {
+  background: radial-gradient(circle at 50% 0%, rgba(15, 30, 45, 0.95) 0%, rgba(10, 15, 26, 0.98) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: var(--radius-xl);
+  margin-bottom: 2.5rem;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(16, 185, 129, 0.05);
+  position: relative;
+  transition: var(--transition);
+}
+
+.routes-radar-map-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-emerald), var(--accent-cyan), transparent);
+  pointer-events: none;
+}
+
+.radar-map-header {
+  padding: 1.25rem 1.75rem;
+  background: rgba(15, 23, 42, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.radar-header-title-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.radar-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--accent-emerald);
+  text-transform: uppercase;
+}
+
+.radar-live-beacon {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-emerald);
+  box-shadow: 0 0 10px var(--accent-emerald);
+  animation: beaconPulse 1.8s infinite;
+}
+
+.radar-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.radar-tagline {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  padding-left: 0.6rem;
+}
+
+.radar-tabs-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(10, 15, 26, 0.85);
+  padding: 0.3rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  flex-wrap: wrap;
+}
+
+.radar-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.radar-tab-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.radar-tab-btn.active {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--accent-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.corridor-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.corridor-indicator.n1 { background: #10b981; box-shadow: 0 0 6px #10b981; }
+.corridor-indicator.n2 { background: #ec4899; box-shadow: 0 0 6px #ec4899; }
+.corridor-indicator.r160 { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+
+.radar-stats-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--light-ice-blue);
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 0.4rem 0.85rem;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+/* Radar Canvas */
+.radar-map-canvas-wrap {
+  width: 100%;
+  position: relative;
+  background: #090e17;
+  overflow: hidden;
+}
+
+.radar-svg-canvas {
+  width: 100%;
+  height: auto;
+  max-height: 480px;
+  display: block;
+}
+
+/* Highway Paths in Radar */
+.radar-highway-group {
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.hwy-bed-path {
+  fill: none;
+  stroke: rgba(15, 23, 42, 0.95);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hwy-glow-path {
+  fill: none;
+  stroke: rgba(16, 185, 129, 0.25);
+  stroke-width: 18;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: blur(5px);
+  transition: stroke 0.3s ease;
+}
+
+.hwy-stream-path {
+  fill: none;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 25 120;
+  animation: streamFlow 4s linear infinite;
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+.hwy-stream-path.n2-stream {
+  animation-duration: 3.5s;
+}
+
+.hwy-stream-path.r160-stream {
+  animation-duration: 2.2s;
+}
+
+/* Stations */
+.radar-station-node {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.radar-station-node:hover {
+  filter: brightness(1.25);
+}
+
+.station-beacon-wave {
+  animation: radarWave 2.4s infinite cubic-bezier(0, 0.2, 0.8, 1);
+  transform-origin: center;
+}
+
+/* Toll markers */
+.toll-marker {
+  transition: transform 0.2s ease;
+}
+
+.toll-marker:hover {
+  filter: brightness(1.2);
+}
+
+/* Radar Telemetry Dock */
+.radar-telemetry-dock {
+  background: rgba(10, 16, 26, 0.92);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.dock-left-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.dock-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.dock-corridor-tag {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.15rem 0.55rem;
+  border-radius: 5px;
+  font-family: monospace;
+}
+
+.dock-status-pill,
+.dock-toll-pill {
+  font-size: 0.72rem;
+  color: var(--light-ice-blue);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.15rem 0.55rem;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dock-status-pill i {
+  color: var(--accent-emerald);
+}
+
+.dock-toll-pill i {
+  color: var(--dawn-amber);
+}
+
+.dock-route-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.dock-metrics-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.dock-metrics-row span i {
+  color: var(--accent-cyan);
+}
+
+.dock-right-action {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.dock-fare-box {
+  text-align: right;
+}
+
+.dock-fare-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+}
+
+.dock-fare-val {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--accent-emerald);
+  font-family: monospace;
+}
+
+.dock-book-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #042f2e;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 800;
+  padding: 0.75rem 1.4rem;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.dock-book-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(16, 185, 129, 0.6);
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+}
+
+/* Corridor Focus States in Radar */
+.routes-radar-map-container.focus-dhaka-coxsbazar #radar-group-n1 .hwy-glow-path,
+.routes-radar-map-container.focus-dhaka-chattogram #radar-group-n1 .hwy-glow-path,
+.routes-radar-map-container.focus-chattogram-dhaka #radar-group-n1 .hwy-glow-path,
+.routes-radar-map-container.focus-dhaka-cumilla #radar-group-n1 .hwy-glow-path {
+  stroke: rgba(16, 185, 129, 0.6);
+  stroke-width: 24;
+}
+
+.routes-radar-map-container.focus-dhaka-sylhet #radar-group-n2 .hwy-glow-path {
+  stroke: rgba(236, 72, 153, 0.6);
+  stroke-width: 24;
+}
+
+.routes-radar-map-container.focus-chattogram-hathazari #radar-group-r160 .hwy-glow-path {
+  stroke: rgba(245, 158, 11, 0.6);
+  stroke-width: 24;
+}
+
 .route-corridor-card {
   background: rgba(30, 41, 59, 0.7);
   border: 1px solid var(--glass-border);
@@ -2446,12 +2815,19 @@ input:checked + .slider:before {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  cursor: pointer;
 }
 
 .route-corridor-card:hover {
   transform: translateY(-5px);
   border-color: rgba(16, 185, 129, 0.4);
   box-shadow: var(--shadow-lg);
+}
+
+.route-corridor-card.active-corridor-selected {
+  border-color: var(--accent-emerald);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);
+  background: rgba(30, 41, 59, 0.9);
 }
 
 .route-corridor-top {
@@ -2475,7 +2851,7 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .corridor-station-node h4 {
@@ -2487,6 +2863,187 @@ input:checked + .slider:before {
 .corridor-station-node span {
   font-size: 0.72rem;
   color: var(--text-muted);
+}
+
+/* ============================================================================
+   5.2 PER-CARD ANIMATED HIGHWAY ROUTE TRACK
+   ============================================================================ */
+.corridor-route-map-track {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin: 0 0.5rem;
+  position: relative;
+  min-width: 130px;
+}
+
+.route-node-circle {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.route-node-circle.origin {
+  background: rgba(16, 185, 129, 0.25);
+  border: 2px solid var(--accent-emerald);
+}
+
+.route-node-circle.dest {
+  background: rgba(6, 182, 212, 0.25);
+  border: 2px solid var(--accent-cyan);
+}
+
+.route-node-circle .node-core {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.route-node-circle .node-pulse {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  animation: radarWave 2s infinite cubic-bezier(0, 0.2, 0.8, 1);
+  opacity: 0.6;
+}
+
+.route-animated-track-rail {
+  flex: 1;
+  position: relative;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.track-svg {
+  position: absolute;
+  width: 100%;
+  height: 16px;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  overflow: visible;
+}
+
+.track-base-line {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 2.5;
+  stroke-dasharray: 4 4;
+}
+
+.track-flow-line {
+  stroke-width: 2.5;
+  stroke-dasharray: 20 60;
+  animation: streamFlow 2.5s linear infinite;
+}
+
+.track-moving-bus {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #0f172a;
+  border: 1.5px solid var(--accent-emerald);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-emerald);
+  font-size: 0.65rem;
+  z-index: 2;
+  animation: busCruise 5s ease-in-out infinite alternate;
+}
+
+.bus-headlight-glow {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 12px;
+  background: radial-gradient(ellipse at left, rgba(16, 185, 129, 0.7), transparent 70%);
+  pointer-events: none;
+}
+
+.track-duration-pill {
+  position: absolute;
+  bottom: -6px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--light-ice-blue);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Animations */
+@keyframes streamFlow {
+  from {
+    stroke-dashoffset: 145;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes radarWave {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes beaconPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes busCruise {
+  0% {
+    left: 2%;
+    transform: scaleX(1);
+  }
+  48% {
+    left: 86%;
+    transform: scaleX(1);
+  }
+  50% {
+    left: 86%;
+    transform: scaleX(-1);
+  }
+  98% {
+    left: 2%;
+    transform: scaleX(-1);
+  }
+  100% {
+    left: 2%;
+    transform: scaleX(1);
+  }
 }
 
 .corridor-plane-divider {
