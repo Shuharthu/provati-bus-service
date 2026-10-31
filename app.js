@@ -1591,14 +1591,67 @@ document.addEventListener('DOMContentLoaded', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  window.toggleMobileNav = function() {
+    const nav = document.getElementById('nav-scroll-links') || document.querySelector('.nav-scroll-links');
+    const btn = document.getElementById('nav-mobile-toggle');
+    if (nav) {
+      nav.classList.toggle('open');
+      if (btn) {
+        const icon = btn.querySelector('i');
+        if (icon) {
+          icon.className = nav.classList.contains('open') ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+        }
+      }
+    }
+  };
+
   function setupEventListeners() {
     setupScrollInteractions();
 
-    // Escape key closes open modals
+    // Close mobile nav when clicking any link
+    document.querySelectorAll('.nav-scroll-link').forEach(link => {
+      link.addEventListener('click', () => {
+        const nav = document.querySelector('.nav-scroll-links');
+        const btn = document.getElementById('nav-mobile-toggle');
+        if (nav && nav.classList.contains('open')) {
+          nav.classList.remove('open');
+          if (btn) {
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = 'fa-solid fa-bars';
+          }
+        }
+      });
+    });
+
+    // Close mobile nav when clicking outside header
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.site-header')) {
+        const nav = document.querySelector('.nav-scroll-links');
+        const btn = document.getElementById('nav-mobile-toggle');
+        if (nav && nav.classList.contains('open')) {
+          nav.classList.remove('open');
+          if (btn) {
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = 'fa-solid fa-bars';
+          }
+        }
+      }
+    });
+
+    // Escape key closes open modals & mobile nav
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
         closeSeatMapDrawer();
+        const nav = document.querySelector('.nav-scroll-links');
+        const btn = document.getElementById('nav-mobile-toggle');
+        if (nav && nav.classList.contains('open')) {
+          nav.classList.remove('open');
+          if (btn) {
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = 'fa-solid fa-bars';
+          }
+        }
       }
     });
   }
