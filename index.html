@@ -12,7 +12,7 @@
   <!-- Google Fonts: Plus Jakarta Sans, Inter, Hind Siliguri (Bengali) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Font Awesome 6 Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -35,13 +35,30 @@
 <body>
 
   <!-- ============================================================================
-       TOP NAVIGATION BAR
+       TOP ANNOUNCEMENT BAR
        ============================================================================ -->
-  <header class="site-header">
+  <div class="announcement-bar">
+    <div class="container announcement-content">
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <span class="announcement-badge"><i class="fa-solid fa-bolt"></i> Live Announcement</span>
+        <span>🎉 Festival Advance Pre-Booking is Open: 15–90 Days Advance Lock • Free Cancellation • 100% Cash-at-Counter 6H Hold Guarantee</span>
+      </div>
+      <div>
+        <a href="#booking-section" class="announcement-link" onclick="activatePrebookingFilter()">
+          Book Festival Trips <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       STICKY TOP NAVIGATION BAR (SCROLLING ANCHOR LINKS)
+       ============================================================================ -->
+  <header class="site-header" id="site-header">
     <div class="container nav-container">
       
-      <!-- Logo & Brand Info -->
-      <a class="brand-wrapper" onclick="switchView('user')">
+      <!-- Brand Logo & Tagline -->
+      <a href="#hero" class="brand-wrapper">
         <img src="assets/logo.png" alt="Provati Bus Service Logo" class="brand-logo-img">
         <div class="brand-text-block">
           <div class="brand-title">
@@ -53,208 +70,204 @@
         </div>
       </a>
 
-      <!-- Navigation Tabs (RBAC / View Switcher) -->
-      <div class="nav-tabs">
-        <button class="nav-btn active" id="nav-booking-btn" onclick="switchView('user')">
-          <i class="fa-solid fa-calendar-days"></i> Schedules & Booking
-        </button>
-        <button class="nav-btn" id="nav-prebook-btn" onclick="activatePrebookingFilter()">
-          <i class="fa-solid fa-lock"></i> Pre-Book <span class="badge-pill">Festival</span>
-        </button>
-        <button class="nav-btn" id="nav-editor-btn" onclick="switchView('editor')">
-          <i class="fa-solid fa-clipboard-list"></i> Editor Desk
-        </button>
-        <button class="nav-btn" id="nav-admin-btn" onclick="switchView('admin')">
-          <i class="fa-solid fa-shield-halved"></i> Admin Portal
-        </button>
-      </div>
+      <!-- Smooth Scroll Navigation Links (Scrollspy) -->
+      <nav class="nav-scroll-links">
+        <a href="#hero" class="nav-scroll-link active" data-target="hero">
+          <i class="fa-solid fa-house"></i> Home
+        </a>
+        <a href="#booking-section" class="nav-scroll-link" data-target="booking-section">
+          <i class="fa-solid fa-calendar-days"></i> Find Trips
+        </a>
+        <a href="#fleet-section" class="nav-scroll-link" data-target="fleet-section">
+          <i class="fa-solid fa-bus-simple"></i> Our Fleet
+        </a>
+        <a href="#experience-section" class="nav-scroll-link" data-target="experience-section">
+          <i class="fa-solid fa-star"></i> Experience
+        </a>
+        <a href="#routes-section" class="nav-scroll-link" data-target="routes-section">
+          <i class="fa-solid fa-route"></i> Routes
+        </a>
+        <a href="#pnr-track-section" class="nav-scroll-link" data-target="pnr-track-section">
+          <i class="fa-solid fa-ticket"></i> Check PNR
+        </a>
+        <a href="#portal-section" class="nav-scroll-link" data-target="portal-section">
+          <i class="fa-solid fa-shield-halved"></i> Staff Hub
+        </a>
+      </nav>
 
-      <!-- Quick Actions & Role Switcher Pill -->
+      <!-- Quick Actions Right -->
       <div class="nav-actions">
         <!-- Live Supabase Status Pill -->
         <div class="supabase-status-pill" id="supabase-status-pill" onclick="openSupabaseSettingsModal()" title="Supabase Database Connection Status (Click to configure)">
           <span class="status-indicator-dot local" id="supabase-status-dot"></span>
-          <span id="supabase-status-text">Local Fallback</span>
+          <span id="supabase-status-text">Local Engine</span>
         </div>
-
-        <button class="nav-btn" onclick="openPnrLookupModal()" title="Search ticket with PNR number">
-          <i class="fa-solid fa-ticket"></i> Find PNR
-        </button>
 
         <!-- Live Role Switcher Dropdown Pill -->
         <div class="role-pill-selector" onclick="openRoleSwitcherModal()" title="Click to switch RBAC Role">
           <div class="role-badge user" id="active-role-badge">USER</div>
           <span class="role-user-name" id="active-user-name">Shuharthu Barua</span>
-          <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color: var(--text-muted);"></i>
+          <i class="fa-solid fa-chevron-down" style="font-size: 0.72rem; color: var(--text-muted);"></i>
         </div>
+
+        <!-- CTA Direct to Booking -->
+        <a href="#booking-section" class="nav-cta-btn">
+          <i class="fa-solid fa-couch"></i> <span>Book Seats</span>
+        </a>
       </div>
 
     </div>
   </header>
 
   <!-- ============================================================================
-       MAIN CONTENT: PASSENGER BOOKING WORKSPACE (USER VIEW)
+       1. HERO SHOWCASE SECTION ("SHOROK POTHE BIMAN")
        ============================================================================ -->
-  <main id="user-booking-view">
+  <section class="hero-section" id="hero">
+    <div class="hero-glow-blob"></div>
 
-    <!-- 1. HERO FLEET CAROUSEL ("OUR PREMIUM FLEET") -->
-    <section class="fleet-showcase-section">
-      <div class="container">
+    <div class="container hero-content">
+      
+      <!-- Top Aviation Pill Badge -->
+      <div class="hero-pill-badge">
+        <i class="fa-solid fa-paper-plane"></i>
+        <span>"Shorok pothe Biman" (সড়ক পথে বিমান) • Luxury Highway Aviation</span>
+      </div>
+
+      <!-- Main Catchy Headline -->
+      <h1 class="hero-title-main">
+        Experience Highway Royalty With <br>
+        <span class="gradient-text">Provati Bus Service</span>
+      </h1>
+
+      <!-- Subtitle Description -->
+      <p class="hero-desc">
+        Next-generation double-decker sleepers, executive 2x2 recliners, and fresh highway coaches linking Dhaka, Chattogram, Cox's Bazar, Sylhet, and regional towns with real-time seat booking, satellite GPS tracking, and scannable digital passes.
+      </p>
+
+      <!-- Floating Quick Search Booking Engine Bar -->
+      <div class="hero-search-container" id="hero-quick-search">
         
-        <div class="section-header">
-          <div class="section-title-wrap">
-            <h2><i class="fa-solid fa-bus-simple"></i> OUR PREMIUM FLEET</h2>
-            <p class="section-subtitle">Experience highway aviation with customized sleeper cabins, business recliners, and fresh inter-city express buses.</p>
-          </div>
-          
-          <div class="fleet-nav-controls">
-            <button class="fleet-ctrl-btn" onclick="resetFleetFilter()" title="Show All Fleet">
-              <i class="fa-solid fa-rotate-left"></i>
+        <div class="hero-search-tabs-row">
+          <div class="segmented-toggle-group" style="margin-bottom: 0;">
+            <button class="seg-toggle-btn active" id="hero-toggle-intercity" onclick="setRouteTypeFilter('Inter-City')">
+              <i class="fa-solid fa-signs-post"></i> Inter-City (Long-Haul)
             </button>
+            <button class="seg-toggle-btn" id="hero-toggle-district" onclick="setRouteTypeFilter('Inside-District')">
+              <i class="fa-solid fa-map-pin"></i> Inside-District (Local)
+            </button>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--dawn-amber);">
+            <i class="fa-solid fa-lock"></i>
+            <span>15–90 Days Holiday Pre-Booking Active</span>
           </div>
         </div>
 
-        <!-- 4 Fleet Cards Grid matching image_4, 5, 6, 7 -->
-        <div class="fleet-grid" id="fleet-cards-container">
+        <!-- 4-Column Quick Form -->
+        <div class="hero-search-inputs-grid">
           
-          <!-- Card 1: Double-Decker AC Sleeper (image_7.png) -->
-          <div class="fleet-card" data-category="Sleeper" onclick="filterByFleet('Sleeper')">
-            <div class="fleet-card-img-wrap">
-              <img src="assets/fleet-sleeper.jpg" alt="Double-Decker AC Sleeper" class="fleet-card-img">
-              <span class="fleet-badge-top premium"><i class="fa-solid fa-crown"></i> Premium Comfort</span>
-              <button class="fleet-like-btn" onclick="event.stopPropagation(); toggleFleetFavorite(this)"><i class="fa-regular fa-heart"></i></button>
+          <!-- Origin -->
+          <div class="hero-input-box">
+            <label class="hero-input-label" for="hero-origin-input">Departure Station (Origin)</label>
+            <div class="hero-input-field-wrap">
+              <i class="fa-solid fa-circle-dot route-icon"></i>
+              <input type="text" id="hero-origin-input" class="hero-input-field" placeholder="e.g. Dhaka" value="Dhaka" autocomplete="off" oninput="syncHeroInputs('origin', this.value)">
             </div>
-            <div class="fleet-card-body">
-              <div class="fleet-rating-row">
-                <span class="fleet-rating"><i class="fa-solid fa-star"></i> 4.9</span>
-                <span class="fleet-seats-chip"><i class="fa-solid fa-couch"></i> 34 Sleeper Berths</span>
-              </div>
-              <h3 class="fleet-bus-title">Double-Decker AC Sleeper</h3>
-              <div class="fleet-amenities-tags">
-                <span class="amenity-tag">2x1 Sleeper Beds</span>
-                <span class="amenity-tag">Personal LED Screen</span>
-                <span class="amenity-tag">WiFi & USB</span>
-                <span class="amenity-tag">Blanket & Water</span>
-              </div>
-              <div class="fleet-card-footer">
-                <div class="fleet-price-col">
-                  <span class="price-label">Starting From</span>
-                  <span class="price-amount">BDT 1,850</span>
-                </div>
-                <button class="fleet-filter-btn">
-                  <span>Filter Fleet</span> <i class="fa-solid fa-arrow-right"></i>
-                </button>
-              </div>
+            <div class="autosuggest-list" id="hero-origin-suggest-list"></div>
+          </div>
+
+          <!-- Swap Button -->
+          <button class="hero-swap-center-btn" onclick="swapOriginDestination()" title="Swap Stations">
+            <i class="fa-solid fa-arrows-left-right"></i>
+          </button>
+
+          <!-- Destination -->
+          <div class="hero-input-box">
+            <label class="hero-input-label" for="hero-dest-input">Arrival Station (Destination)</label>
+            <div class="hero-input-field-wrap">
+              <i class="fa-solid fa-location-dot route-icon dest"></i>
+              <input type="text" id="hero-dest-input" class="hero-input-field" placeholder="e.g. Chattogram" value="Chattogram" autocomplete="off" oninput="syncHeroInputs('dest', this.value)">
+            </div>
+            <div class="autosuggest-list" id="hero-dest-suggest-list"></div>
+          </div>
+
+          <!-- Journey Date -->
+          <div class="hero-input-box">
+            <label class="hero-input-label" for="hero-date-picker">Date of Journey</label>
+            <div class="hero-input-field-wrap">
+              <input type="date" id="hero-date-picker" class="hero-input-field" style="padding-left: 1rem;" onchange="syncHeroDate(this.value)">
             </div>
           </div>
 
-          <!-- Card 2: Executive AC Business Coach (image_4.png) -->
-          <div class="fleet-card" data-category="Business" onclick="filterByFleet('Business')">
-            <div class="fleet-card-img-wrap">
-              <img src="assets/fleet-business.jpg" alt="Executive AC Business Coach" class="fleet-card-img">
-              <span class="fleet-badge-top"><i class="fa-solid fa-star"></i> Business Executive</span>
-              <button class="fleet-like-btn" onclick="event.stopPropagation(); toggleFleetFavorite(this)"><i class="fa-regular fa-heart"></i></button>
-            </div>
-            <div class="fleet-card-body">
-              <div class="fleet-rating-row">
-                <span class="fleet-rating"><i class="fa-solid fa-star"></i> 4.8</span>
-                <span class="fleet-seats-chip"><i class="fa-solid fa-chair"></i> 40 Reclining Seats</span>
-              </div>
-              <h3 class="fleet-bus-title">Executive AC Business Coach</h3>
-              <div class="fleet-amenities-tags">
-                <span class="amenity-tag">2x2 Luxury Recliners</span>
-                <span class="amenity-tag">Reading Lights</span>
-                <span class="amenity-tag">USB Fast Charge</span>
-                <span class="amenity-tag">Snacks & Coffee</span>
-              </div>
-              <div class="fleet-card-footer">
-                <div class="fleet-price-col">
-                  <span class="price-label">Starting From</span>
-                  <span class="price-amount">BDT 1,200</span>
-                </div>
-                <button class="fleet-filter-btn">
-                  <span>Filter Fleet</span> <i class="fa-solid fa-arrow-right"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 3: Non-AC Fresh Inter-City Coach (image_6.png) -->
-          <div class="fleet-card" data-category="Highway" onclick="filterByFleet('Highway')">
-            <div class="fleet-card-img-wrap">
-              <img src="assets/fleet-non-ac.jpg" alt="Non-AC Fresh Inter-City Coach" class="fleet-card-img">
-              <span class="fleet-badge-top"><i class="fa-solid fa-wind"></i> Natural Ventilation</span>
-              <button class="fleet-like-btn" onclick="event.stopPropagation(); toggleFleetFavorite(this)"><i class="fa-regular fa-heart"></i></button>
-            </div>
-            <div class="fleet-card-body">
-              <div class="fleet-rating-row">
-                <span class="fleet-rating"><i class="fa-solid fa-star"></i> 4.5</span>
-                <span class="fleet-seats-chip"><i class="fa-solid fa-chair"></i> 40 Economy Seats</span>
-              </div>
-              <h3 class="fleet-bus-title">Non-AC Fresh Inter-City Coach</h3>
-              <div class="fleet-amenities-tags">
-                <span class="amenity-tag">Economical Fare</span>
-                <span class="amenity-tag">Sliding Windows</span>
-                <span class="amenity-tag">Large Cargo Bay</span>
-                <span class="amenity-tag">Extra Legroom</span>
-              </div>
-              <div class="fleet-card-footer">
-                <div class="fleet-price-col">
-                  <span class="price-label">Starting From</span>
-                  <span class="price-amount">BDT 420</span>
-                </div>
-                <button class="fleet-filter-btn">
-                  <span>Filter Fleet</span> <i class="fa-solid fa-arrow-right"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 4: Standard Non-AC Local Commuter (image_5.png) -->
-          <div class="fleet-card" data-category="Commuter" onclick="filterByFleet('Commuter')">
-            <div class="fleet-card-img-wrap">
-              <img src="assets/fleet-commuter.jpg" alt="Standard Non-AC Local Commuter" class="fleet-card-img">
-              <span class="fleet-badge-top"><i class="fa-solid fa-route"></i> Local Commuter</span>
-              <button class="fleet-like-btn" onclick="event.stopPropagation(); toggleFleetFavorite(this)"><i class="fa-regular fa-heart"></i></button>
-            </div>
-            <div class="fleet-card-body">
-              <div class="fleet-rating-row">
-                <span class="fleet-rating"><i class="fa-solid fa-star"></i> 4.3</span>
-                <span class="fleet-seats-chip"><i class="fa-solid fa-users"></i> 40 Commuter Seats</span>
-              </div>
-              <h3 class="fleet-bus-title">Standard Non-AC Local Commuter</h3>
-              <div class="fleet-amenities-tags">
-                <span class="amenity-tag">Budget-Friendly</span>
-                <span class="amenity-tag">Inside District</span>
-                <span class="amenity-tag">Frequent Stops</span>
-                <span class="amenity-tag">Quick Boarding</span>
-              </div>
-              <div class="fleet-card-footer">
-                <div class="fleet-price-col">
-                  <span class="price-label">Starting From</span>
-                  <span class="price-amount">BDT 120</span>
-                </div>
-                <button class="fleet-filter-btn">
-                  <span>Filter Fleet</span> <i class="fa-solid fa-arrow-right"></i>
-                </button>
-              </div>
-            </div>
-          </div>
+          <!-- Search CTA -->
+          <button class="hero-search-submit-btn" onclick="executeHeroSearch()">
+            <i class="fa-solid fa-magnifying-glass"></i> Search Buses
+          </button>
 
         </div>
 
       </div>
-    </section>
 
-    <!-- 2. ROUTE FILTERS & LIVE BOOKING ENGINE -->
-    <section class="booking-engine-section">
-      <div class="container main-booking-layout">
+      <!-- Quick Popular Route Chips -->
+      <div class="hero-popular-strip">
+        <span class="hero-popular-label"><i class="fa-solid fa-fire" style="color: var(--dawn-amber);"></i> Popular Highways:</span>
+        <div class="popular-route-pill" onclick="quickSelectRoute('Dhaka', 'Cox\'s Bazar', 'Sleeper')">
+          Dhaka ➔ Cox's Bazar <span class="fare-tag">BDT 2,400</span>
+        </div>
+        <div class="popular-route-pill" onclick="quickSelectRoute('Dhaka', 'Chattogram', 'Business')">
+          Dhaka ➔ Chattogram <span class="fare-tag">BDT 1,200</span>
+        </div>
+        <div class="popular-route-pill" onclick="quickSelectRoute('Dhaka', 'Sylhet', 'Highway')">
+          Dhaka ➔ Sylhet <span class="fare-tag">BDT 680</span>
+        </div>
+        <div class="popular-route-pill" onclick="quickSelectRoute('Chattogram', 'Hathazari', 'Commuter')">
+          Chattogram ➔ Hathazari <span class="fare-tag">BDT 150</span>
+        </div>
+      </div>
+
+      <!-- Hero Key Stats Metrics Strip -->
+      <div class="hero-stats-strip">
+        <div class="hero-stat-item">
+          <div class="hero-stat-number">34<span class="unit">+</span></div>
+          <div class="hero-stat-label">Luxury Sleeper Berths</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-number">4<span class="unit"> Fleet</span></div>
+          <div class="hero-stat-label">Custom Operating Classes</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-number">99.8<span class="unit">%</span></div>
+          <div class="hero-stat-label">Punctual Highway Dispatch</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-number">4.9<span class="unit"> ★</span></div>
+          <div class="hero-stat-label">Verified Passenger Rating</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================================
+       2. ROUTE FILTERS & LIVE BOOKING ENGINE SECTION
+       ============================================================================ -->
+  <section class="booking-engine-section page-section" id="booking-section">
+    <div class="container">
+      
+      <!-- Centered Section Header -->
+      <div class="section-header-centered">
+        <span class="section-pill-tag"><i class="fa-solid fa-sliders"></i> LIVE RESERVATION ENGINE</span>
+        <h2 class="section-title-lg">Smart Bus Schedules & <span class="accent">Seat Selector</span></h2>
+        <p class="section-subtitle-lg">Pick your preferred trip departure, customize your deck layout in real-time, and reserve your seats with zero booking charges.</p>
+      </div>
+
+      <div class="main-booking-layout">
         
         <!-- Left Filter Panel -->
         <aside class="glass-panel search-filter-sidebar">
           
           <div class="filter-heading-row">
-            <h3><i class="fa-solid fa-sliders"></i> Journey Filters</h3>
+            <h3><i class="fa-solid fa-filter"></i> Trip Filters</h3>
             <span class="reset-filter-link" onclick="resetAllFilters()">Reset All</span>
           </div>
 
@@ -457,32 +470,688 @@
         </section>
 
       </div>
-    </section>
-
-  </main>
+    </div>
+  </section>
 
   <!-- ============================================================================
-       EDITOR DESK WORKSPACE PANEL (COUNTER DISPATCHER & SCHEDULE MANAGER)
+       3. HERO FLEET CAROUSEL ("OUR PREMIUM FLEET")
        ============================================================================ -->
-  <section class="role-workspace-panel" id="editor-workspace-view">
+  <section class="fleet-showcase-section page-section" id="fleet-section">
     <div class="container">
       
-      <div class="workspace-header-bar">
-        <div class="workspace-title">
-          <h2><i class="fa-solid fa-clipboard-list" style="color: var(--dawn-amber);"></i> Counter Editor Workspace</h2>
-          <p class="section-subtitle">Real-time trip dispatch, bus pricing modifications, schedule delay alerts, and passenger manifest oversight.</p>
+      <!-- Section Header -->
+      <div class="section-header-centered">
+        <span class="section-pill-tag"><i class="fa-solid fa-bus-simple"></i> HIGHWAY AVIATION VEHICLES</span>
+        <h2 class="section-title-lg">Our Premium <span class="accent">Operating Fleet</span></h2>
+        <p class="section-subtitle-lg">Choose your preferred level of comfort before booking — from ultra-luxury double-decker sleepers to economical regional commuter coaches.</p>
+      </div>
+
+      <!-- 4 Fleet Cards Grid matching image_4, 5, 6, 7 -->
+      <div class="fleet-grid" id="fleet-cards-container">
+        
+        <!-- Card 1: Double-Decker AC Sleeper (image_7.png) -->
+        <div class="fleet-card" data-category="Sleeper" onclick="filterByFleet('Sleeper')">
+          <div class="fleet-card-img-wrap">
+            <img src="assets/fleet-sleeper.jpg" alt="Double-Decker AC Sleeper" class="fleet-card-img">
+            <span class="fleet-badge-top premium"><i class="fa-solid fa-crown"></i> Premium Luxury</span>
+            <button class="fleet-like-btn" onclick="event.stopPropagation(); toggleFleetFavorite(this)"><i class="fa-regular fa-heart"></i></button>
+          </div>
+          <div class="fleet-card-body">
+            <div class="fleet-rating-row">
+              <span class="fleet-rating"><i class="fa-solid fa-star"></i> 4.9</span>
+              <span class="fleet-seats-chip"><i class="fa-solid fa-couch"></i> 34 Sleeper Berths</span>
+            </div>
+            <h3 class="fleet-bus-title">Double-Decker AC Sleeper</h3>
+            <div class="fleet-amenities-tags">
+              <span class="amenity-tag">2x1 Sleeper Beds</span>
+              <span class="amenity-tag">Personal LED Screen</span>
+              <span class="amenity-tag">WiFi & USB</span>
+              <span class="amenity-tag">Blanket & Water</span>
+            </div>
+            <div class="fleet-card-footer">
+              <div class="fleet-price-col">
+                <span class="price-label">Starting From</span>
+                <span class="price-amount">BDT 1,850</span>
+              </div>
+              <button class="fleet-filter-btn">
+                <span>Filter Fleet</span> <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
         </div>
-        <button class="select-trip-btn" onclick="openCreateTripModal()">
-          <i class="fa-solid fa-plus"></i> Add New Trip Schedule
+
+        <!-- Card 2: Executive AC Business Coach (image_4.png) -->
+        <div class="fleet-card" data-category="Business" onclick="filterByFleet('Business')">
+          <div class="fleet-card-img-wrap">
+            <img src="assets/fleet-business.jpg" alt="Executive AC Business Coach" class="fleet-card-img">
+            <span class="fleet-badge-top"><i class="fa-solid fa-star"></i> Business Executive</span>
+            <button class="fleet-like-btn" onclick="event.stopPropagation(); toggleFleetFavorite(this)"><i class="fa-regular fa-heart"></i></button>
+          </div>
+          <div class="fleet-card-body">
+            <div class="fleet-rating-row">
+              <span class="fleet-rating"><i class="fa-solid fa-star"></i> 4.8</span>
+              <span class="fleet-seats-chip"><i class="fa-solid fa-chair"></i> 40 Reclining Seats</span>
+            </div>
+            <h3 class="fleet-bus-title">Executive AC Business Coach</h3>
+            <div class="fleet-amenities-tags">
+              <span class="amenity-tag">2x2 Luxury Recliners</span>
+              <span class="amenity-tag">Reading Lights</span>
+              <span class="amenity-tag">USB Fast Charge</span>
+              <span class="amenity-tag">Snacks & Coffee</span>
+            </div>
+            <div class="fleet-card-footer">
+              <div class="fleet-price-col">
+                <span class="price-label">Starting From</span>
+                <span class="price-amount">BDT 1,200</span>
+              </div>
+              <button class="fleet-filter-btn">
+                <span>Filter Fleet</span> <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Non-AC Fresh Inter-City Coach (image_6.png) -->
+        <div class="fleet-card" data-category="Highway" onclick="filterByFleet('Highway')">
+          <div class="fleet-card-img-wrap">
+            <img src="assets/fleet-non-ac.jpg" alt="Non-AC Fresh Inter-City Coach" class="fleet-card-img">
+            <span class="fleet-badge-top"><i class="fa-solid fa-wind"></i> Natural Ventilation</span>
+            <button class="fleet-like-btn" onclick="event.stopPropagation(); toggleFleetFavorite(this)"><i class="fa-regular fa-heart"></i></button>
+          </div>
+          <div class="fleet-card-body">
+            <div class="fleet-rating-row">
+              <span class="fleet-rating"><i class="fa-solid fa-star"></i> 4.5</span>
+              <span class="fleet-seats-chip"><i class="fa-solid fa-chair"></i> 40 Economy Seats</span>
+            </div>
+            <h3 class="fleet-bus-title">Non-AC Fresh Inter-City Coach</h3>
+            <div class="fleet-amenities-tags">
+              <span class="amenity-tag">Economical Fare</span>
+              <span class="amenity-tag">Sliding Windows</span>
+              <span class="amenity-tag">Large Cargo Bay</span>
+              <span class="amenity-tag">Extra Legroom</span>
+            </div>
+            <div class="fleet-card-footer">
+              <div class="fleet-price-col">
+                <span class="price-label">Starting From</span>
+                <span class="price-amount">BDT 420</span>
+              </div>
+              <button class="fleet-filter-btn">
+                <span>Filter Fleet</span> <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Standard Non-AC Local Commuter (image_5.png) -->
+        <div class="fleet-card" data-category="Commuter" onclick="filterByFleet('Commuter')">
+          <div class="fleet-card-img-wrap">
+            <img src="assets/fleet-commuter.jpg" alt="Standard Non-AC Local Commuter" class="fleet-card-img">
+            <span class="fleet-badge-top"><i class="fa-solid fa-route"></i> Local Commuter</span>
+            <button class="fleet-like-btn" onclick="event.stopPropagation(); toggleFleetFavorite(this)"><i class="fa-regular fa-heart"></i></button>
+          </div>
+          <div class="fleet-card-body">
+            <div class="fleet-rating-row">
+              <span class="fleet-rating"><i class="fa-solid fa-star"></i> 4.3</span>
+              <span class="fleet-seats-chip"><i class="fa-solid fa-users"></i> 40 Commuter Seats</span>
+            </div>
+            <h3 class="fleet-bus-title">Standard Non-AC Local Commuter</h3>
+            <div class="fleet-amenities-tags">
+              <span class="amenity-tag">Budget-Friendly</span>
+              <span class="amenity-tag">Inside District</span>
+              <span class="amenity-tag">Frequent Stops</span>
+              <span class="amenity-tag">Quick Boarding</span>
+            </div>
+            <div class="fleet-card-footer">
+              <div class="fleet-price-col">
+                <span class="price-label">Starting From</span>
+                <span class="price-amount">BDT 120</span>
+              </div>
+              <button class="fleet-filter-btn">
+                <span>Filter Fleet</span> <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================================
+       4. "BIMAN ON WHEELS" PROVATI EXPERIENCE HIGHLIGHTS
+       ============================================================================ -->
+  <section class="page-section" id="experience-section" style="background: rgba(11, 15, 23, 0.5);">
+    <div class="container">
+      
+      <div class="section-header-centered">
+        <span class="section-pill-tag"><i class="fa-solid fa-award"></i> THE PROVATI ADVANTAGE</span>
+        <h2 class="section-title-lg">Why Discerning Travelers Choose <span class="accent">Provati</span></h2>
+        <p class="section-subtitle-lg">From first-class sleeper berths to satellite telemetry safety tracking, we deliver airline hospitality on Bangladesh's national highways.</p>
+      </div>
+
+      <div class="experience-grid">
+        
+        <!-- Feature 1 -->
+        <div class="experience-card">
+          <div class="experience-icon-wrap emerald">
+            <i class="fa-solid fa-bed"></i>
+          </div>
+          <h3 class="experience-card-title">First-Class Sleeper Cabins</h3>
+          <p class="experience-card-desc">Fully flat 2x1 sleeper berths equipped with privacy curtains, sanitized beddings, and dimmable reading lamps for overnight highway tranquility.</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="experience-card">
+          <div class="experience-icon-wrap blue">
+            <i class="fa-solid fa-plane-departure"></i>
+          </div>
+          <h3 class="experience-card-title">Aviation Air Suspension</h3>
+          <p class="experience-card-desc">Electronically stabilized air suspension engineered to absorb highway vibrations, ensuring a smooth, floating ride over long expressways.</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="experience-card">
+          <div class="experience-icon-wrap amber">
+            <i class="fa-solid fa-wifi"></i>
+          </div>
+          <h3 class="experience-card-title">High-Speed Wi-Fi & USB Power</h3>
+          <p class="experience-card-desc">Stay powered and connected with high-speed 4G Wi-Fi routers and individual USB fast-charging ports at every reclining seat and sleeper bed.</p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="experience-card">
+          <div class="experience-icon-wrap emerald">
+            <i class="fa-solid fa-satellite-dish"></i>
+          </div>
+          <h3 class="experience-card-title">24/7 Satellite GPS Safety</h3>
+          <p class="experience-card-desc">Every coach is continuously monitored by central dispatch for speed compliance, lane safety, and immediate emergency telemetry response.</p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="experience-card">
+          <div class="experience-icon-wrap blue">
+            <i class="fa-solid fa-mug-saucer"></i>
+          </div>
+          <h3 class="experience-card-title">Executive VIP Lounges</h3>
+          <p class="experience-card-desc">Enjoy air-conditioned boarding lounges in Sayedabad Central, Dampara Chattogram, and Kolatoli Beach Circle with free mineral water and tea.</p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="experience-card">
+          <div class="experience-icon-wrap amber">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </div>
+          <h3 class="experience-card-title">Flexible 6-Hour Cash Hold</h3>
+          <p class="experience-card-desc">Reserve your seats online without immediate digital payment and collect tickets in cash at any counter station up to 6 hours before departure.</p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================================
+       5. POPULAR HIGHWAY ROUTES & CORRIDORS
+       ============================================================================ -->
+  <section class="page-section" id="routes-section">
+    <div class="container">
+      
+      <div class="section-header-centered">
+        <span class="section-pill-tag"><i class="fa-solid fa-signs-post"></i> HIGH-FREQUENCY HIGHWAYS</span>
+        <h2 class="section-title-lg">Popular Routes & <span class="accent">Daily Fares</span></h2>
+        <p class="section-subtitle-lg">Direct express connections along National Highway N1, N2, and regional district transport corridors.</p>
+      </div>
+
+      <div class="routes-grid">
+        
+        <!-- Route 1 -->
+        <div class="route-corridor-card">
+          <div class="route-corridor-top">
+            <span class="corridor-highway-tag">NATIONAL HWY N1</span>
+            <span class="service-type-badge sleeper">Double-Decker</span>
+          </div>
+          <div class="corridor-stations-row">
+            <div class="corridor-station-node">
+              <h4>Dhaka</h4>
+              <span>Sayedabad VIP</span>
+            </div>
+            <div class="corridor-plane-divider">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>9h 00m</span>
+            </div>
+            <div class="corridor-station-node" style="text-align: right;">
+              <h4>Cox's Bazar</h4>
+              <span>Kolatoli Circle</span>
+            </div>
+          </div>
+          <div class="corridor-meta-pills">
+            <span><i class="fa-solid fa-road"></i> 395 km</span>
+            <span>•</span>
+            <span><i class="fa-solid fa-clock"></i> Night Sleeper</span>
+            <span>•</span>
+            <span><i class="fa-solid fa-shield"></i> Express</span>
+          </div>
+          <div class="corridor-bottom-row">
+            <div>
+              <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">Per Seat Fare</span>
+              <span class="corridor-fare-amount">BDT 2,400</span>
+            </div>
+            <button class="fleet-filter-btn" onclick="quickSelectRoute('Dhaka', 'Cox\'s Bazar', 'Sleeper')">
+              Book Route <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Route 2 -->
+        <div class="route-corridor-card">
+          <div class="route-corridor-top">
+            <span class="corridor-highway-tag">NATIONAL HWY N1</span>
+            <span class="service-type-badge ac">Business AC</span>
+          </div>
+          <div class="corridor-stations-row">
+            <div class="corridor-station-node">
+              <h4>Dhaka</h4>
+              <span>Kallayanpur VIP</span>
+            </div>
+            <div class="corridor-plane-divider">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>5h 00m</span>
+            </div>
+            <div class="corridor-station-node" style="text-align: right;">
+              <h4>Chattogram</h4>
+              <span>GEC Circle</span>
+            </div>
+          </div>
+          <div class="corridor-meta-pills">
+            <span><i class="fa-solid fa-road"></i> 248 km</span>
+            <span>•</span>
+            <span><i class="fa-solid fa-chair"></i> 2x2 Recliner</span>
+            <span>•</span>
+            <span><i class="fa-solid fa-wifi"></i> Free WiFi</span>
+          </div>
+          <div class="corridor-bottom-row">
+            <div>
+              <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">Per Seat Fare</span>
+              <span class="corridor-fare-amount">BDT 1,200</span>
+            </div>
+            <button class="fleet-filter-btn" onclick="quickSelectRoute('Dhaka', 'Chattogram', 'Business')">
+              Book Route <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Route 3 -->
+        <div class="route-corridor-card">
+          <div class="route-corridor-top">
+            <span class="corridor-highway-tag">NATIONAL HWY N1</span>
+            <span class="service-type-badge ac">Executive Return</span>
+          </div>
+          <div class="corridor-stations-row">
+            <div class="corridor-station-node">
+              <h4>Chattogram</h4>
+              <span>Dampara Lounge</span>
+            </div>
+            <div class="corridor-plane-divider">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>5h 15m</span>
+            </div>
+            <div class="corridor-station-node" style="text-align: right;">
+              <h4>Dhaka</h4>
+              <span>Sayedabad Gate</span>
+            </div>
+          </div>
+          <div class="corridor-meta-pills">
+            <span><i class="fa-solid fa-road"></i> 248 km</span>
+            <span>•</span>
+            <span><i class="fa-solid fa-coffee"></i> Refreshments</span>
+            <span>•</span>
+            <span><i class="fa-solid fa-bolt"></i> Fast USB</span>
+          </div>
+          <div class="corridor-bottom-row">
+            <div>
+              <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">Per Seat Fare</span>
+              <span class="corridor-fare-amount">BDT 1,200</span>
+            </div>
+            <button class="fleet-filter-btn" onclick="quickSelectRoute('Chattogram', 'Dhaka', 'Business')">
+              Book Route <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Route 4 -->
+        <div class="route-corridor-card">
+          <div class="route-corridor-top">
+            <span class="corridor-highway-tag">NATIONAL HWY N2</span>
+            <span class="service-type-badge non-ac">Highway Express</span>
+          </div>
+          <div class="corridor-stations-row">
+            <div class="corridor-station-node">
+              <h4>Dhaka</h4>
+              <span>Mohakhali Terminal</span>
+            </div>
+            <div class="corridor-plane-divider">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>5h 30m</span>
+            </div>
+            <div class="corridor-station-node" style="text-align: right;">
+              <h4>Sylhet</h4>
+              <span>Kadamtoli Main</span>
+            </div>
+          </div>
+          <div class="corridor-meta-pills">
+            <span><i class="fa-solid fa-road"></i> 240 km</span>
+            <span>•</span>
+            <span><i class="fa-solid fa-wind"></i> Natural Air</span>
+            <span>•</span>
+            <span><i class="fa-solid fa-box"></i> Cargo Space</span>
+          </div>
+          <div class="corridor-bottom-row">
+            <div>
+              <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">Per Seat Fare</span>
+              <span class="corridor-fare-amount">BDT 680</span>
+            </div>
+            <button class="fleet-filter-btn" onclick="quickSelectRoute('Dhaka', 'Sylhet', 'Highway')">
+              Book Route <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Route 5 -->
+        <div class="route-corridor-card">
+          <div class="route-corridor-top">
+            <span class="corridor-highway-tag">NATIONAL HWY N1</span>
+            <span class="service-type-badge non-ac">Corridor</span>
+          </div>
+          <div class="corridor-stations-row">
+            <div class="corridor-station-node">
+              <h4>Dhaka</h4>
+              <span>Sayedabad Counter</span>
+            </div>
+            <div class="corridor-plane-divider">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>2h 30m</span>
+            </div>
+            <div class="corridor-station-node" style="text-align: right;">
+              <h4>Cumilla</h4>
+              <span>Paduar Bazar</span>
+            </div>
+          </div>
+          <div class="corridor-meta-pills">
+            <span><i class="fa-solid fa-road"></i> 98 km</span>
+            <span>•</span>
+            <span><i class="fa-solid fa-hourglass"></i> Fast Transit</span>
+            <span>•</span>
+            <span><i class="fa-solid fa-coins"></i> Economy</span>
+          </div>
+          <div class="corridor-bottom-row">
+            <div>
+              <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">Per Seat Fare</span>
+              <span class="corridor-fare-amount">BDT 420</span>
+            </div>
+            <button class="fleet-filter-btn" onclick="quickSelectRoute('Dhaka', 'Cumilla', 'Highway')">
+              Book Route <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Route 6 -->
+        <div class="route-corridor-card">
+          <div class="route-corridor-top">
+            <span class="corridor-highway-tag">REGIONAL DISTRICT</span>
+            <span class="service-type-badge non-ac">Commuter</span>
+          </div>
+          <div class="corridor-stations-row">
+            <div class="corridor-station-node">
+              <h4>Chattogram</h4>
+              <span>Muradpur Stand</span>
+            </div>
+            <div class="corridor-plane-divider">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>1h 00m</span>
+            </div>
+            <div class="corridor-station-node" style="text-align: right;">
+              <h4>Hathazari</h4>
+              <span>University Gate</span>
+            </div>
+          </div>
+          <div class="corridor-meta-pills">
+            <span><i class="fa-solid fa-road"></i> 22 km</span>
+            <span>•</span>
+            <span><i class="fa-solid fa-users"></i> Frequent</span>
+            <span>•</span>
+            <span><i class="fa-solid fa-tag"></i> Budget</span>
+          </div>
+          <div class="corridor-bottom-row">
+            <div>
+              <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">Per Seat Fare</span>
+              <span class="corridor-fare-amount">BDT 150</span>
+            </div>
+            <button class="fleet-filter-btn" onclick="quickSelectRoute('Chattogram', 'Hathazari', 'Commuter')">
+              Book Route <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================================
+       6. LIVE PNR STATUS TRACKER & INSTANT E-TICKET RETRIEVAL
+       ============================================================================ -->
+  <section class="page-section" id="pnr-track-section" style="background: rgba(11, 15, 23, 0.7);">
+    <div class="container">
+      
+      <div class="section-header-centered">
+        <span class="section-pill-tag"><i class="fa-solid fa-qrcode"></i> INSTANT BOARDING PASS</span>
+        <h2 class="section-title-lg">Track Reservation & <span class="accent">Get E-Ticket</span></h2>
+        <p class="section-subtitle-lg">Enter your unique 9-character PNR code to inspect trip status, chosen seat numbers, and download your scannable digital boarding pass.</p>
+      </div>
+
+      <div class="pnr-tracker-box">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+          <label class="filter-label" style="font-size: 0.85rem; color: #ffffff;">Enter Passenger PNR Code</label>
+          <span style="font-size: 0.75rem; color: var(--dawn-amber);">Example: PNR PVT-4091A</span>
+        </div>
+
+        <div class="pnr-search-bar-wrap">
+          <input type="text" id="inline-pnr-input" class="pnr-input-large" placeholder="PNR PVT-4091A" value="PNR PVT-4091A">
+          <button class="pnr-submit-large-btn" onclick="executeInlinePnrSearch()">
+            <i class="fa-solid fa-magnifying-glass"></i> View My E-Ticket
+          </button>
+        </div>
+
+        <div style="margin-top: 1.25rem; display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); flex-wrap: wrap; gap: 0.5rem;">
+          <span><i class="fa-solid fa-shield-halved" style="color: var(--accent-emerald);"></i> 256-Bit SSL Encrypted Verification</span>
+          <span>Lost PNR? Call 24/7 Hotline: <strong style="color: #ffffff;">+880 1711 009988</strong></span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================================
+       7. PASSENGER REVIEWS / TESTIMONIALS
+       ============================================================================ -->
+  <section class="page-section" id="reviews-section">
+    <div class="container">
+      
+      <div class="section-header-centered">
+        <span class="section-pill-tag"><i class="fa-solid fa-comments"></i> PASSENGER EXPERIENCES</span>
+        <h2 class="section-title-lg">Trusted by Thousands Across <span class="accent">Bangladesh</span></h2>
+        <p class="section-subtitle-lg">Real feedback from verified travelers who choose Provati Bus Service for their highway journeys.</p>
+      </div>
+
+      <div class="reviews-grid">
+        
+        <div class="review-card">
+          <div class="review-stars">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="review-quote">
+            "The Double-Decker Sleeper bus from Dhaka to Cox's Bazar is truly 'Shorok pothe Biman'! The privacy curtain, personal LED, and smooth air suspension gave me a full 8 hours of deep sleep."
+          </p>
+          <div class="review-author-row">
+            <div class="review-avatar">SB</div>
+            <div class="review-author-info">
+              <h5>Shuharthu Barua</h5>
+              <span>Dhaka ➔ Cox's Bazar • Sleeper</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-stars">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="review-quote">
+            "As a frequent business traveler between Dhaka and Chattogram, the Executive Business Coach is unbeatable. Extremely punctual, high-speed charging for my laptop, and VIP lounge access."
+          </p>
+          <div class="review-author-row">
+            <div class="review-avatar">FY</div>
+            <div class="review-author-info">
+              <h5>Farhana Yasmin</h5>
+              <span>Dhaka ➔ Chattogram • Business</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-stars">
+            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+          </div>
+          <p class="review-quote">
+            "Booking online with bKash took less than 60 seconds. The scannable QR ticket directly on my phone made boarding at Sayedabad counter completely seamless. Highly recommended!"
+          </p>
+          <div class="review-author-row">
+            <div class="review-avatar">TI</div>
+            <div class="review-author-info">
+              <h5>Tariqul Islam</h5>
+              <span>Dhaka ➔ Sylhet • Highway Express</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================================
+       8. STAFF OPERATIONS & MANAGEMENT PORTAL SECTION
+       ============================================================================ -->
+  <section class="management-portal-section page-section" id="portal-section">
+    <div class="container">
+      
+      <!-- Section Header with Role Switcher Indicator -->
+      <div class="section-header-centered" style="margin-bottom: 2rem;">
+        <span class="section-pill-tag"><i class="fa-solid fa-shield-halved"></i> ROLE-BASED ACCESS CONTROL (RBAC)</span>
+        <h2 class="section-title-lg">Staff Operations & <span class="accent">Management Hub</span></h2>
+        <p class="section-subtitle-lg">
+          Current Access Level: <strong id="portal-current-role-text" style="color: var(--accent-emerald);">Passenger (User)</strong> • Switch roles below to test Counter Dispatcher or Super Admin Command tools.
+        </p>
+      </div>
+
+      <!-- Portal Tabs Navigation Pills -->
+      <div class="portal-nav-tabs-bar">
+        <button class="portal-tab-pill active" id="tab-portal-analytics" onclick="switchPortalTab('analytics')">
+          <i class="fa-solid fa-chart-line"></i> Financials & Analytics
+        </button>
+        <button class="portal-tab-pill" id="tab-portal-editor" onclick="switchPortalTab('editor')">
+          <i class="fa-solid fa-clipboard-list"></i> Counter Dispatcher Desk
+        </button>
+        <button class="portal-tab-pill" id="tab-portal-admin" onclick="switchPortalTab('admin')">
+          <i class="fa-solid fa-user-shield"></i> Super Admin Command
         </button>
       </div>
 
-      <!-- Manifest & Schedules Management Table -->
-      <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
-        <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem; color: #ffffff;">
-          <i class="fa-solid fa-bus"></i> Active Schedules & Status Dispatcher
-        </h3>
-        <div class="data-table-container">
+      <!-- Tab 1: Financials & Occupancy Analytics Panel -->
+      <div class="portal-panel-content active" id="panel-portal-analytics">
+        
+        <!-- Metrics Cards Grid -->
+        <div class="metrics-cards-grid">
+          <div class="metric-card">
+            <div class="metric-icon-wrap green">
+              <i class="fa-solid fa-bangladeshi-taka-sign"></i>
+            </div>
+            <div class="metric-info">
+              <h5>Total Net Revenue</h5>
+              <p id="admin-metric-revenue">BDT 0</p>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon-wrap amber">
+              <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+            <div class="metric-info">
+              <h5>Counter Holds (6h)</h5>
+              <p id="admin-metric-holds">BDT 0</p>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon-wrap blue">
+              <i class="fa-solid fa-ticket"></i>
+            </div>
+            <div class="metric-info">
+              <h5>Seats Reserved</h5>
+              <p id="admin-metric-seats">0 Seats</p>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon-wrap coral">
+              <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <div class="metric-info">
+              <h5>Fleet Occupancy</h5>
+              <p id="admin-metric-occupancy">0%</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+          <div class="glass-panel" style="padding: 1.5rem;">
+            <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: #ffffff;">
+              <i class="fa-solid fa-chart-simple"></i> AC vs. Non-AC Seat Utilization
+            </h4>
+            <div style="height: 240px; position: relative;">
+              <canvas id="occupancyChart"></canvas>
+            </div>
+          </div>
+
+          <div class="glass-panel" style="padding: 1.5rem;">
+            <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: #ffffff;">
+              <i class="fa-solid fa-wallet"></i> Payment Gateway Revenue Split
+            </h4>
+            <div style="height: 240px; position: relative;">
+              <canvas id="revenueChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tab 2: Counter Dispatcher Desk Panel -->
+      <div class="portal-panel-content" id="panel-portal-editor">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: #ffffff;">
+              <i class="fa-solid fa-bus" style="color: var(--dawn-amber);"></i> Active Schedules & Status Dispatcher
+            </h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Modify ticket prices, change trip delays, and toggle VIP emergency holds in real time.</span>
+          </div>
+          <button class="select-trip-btn" onclick="openCreateTripModal()">
+            <i class="fa-solid fa-plus"></i> Add New Trip Schedule
+          </button>
+        </div>
+
+        <div class="data-table-container" style="margin-bottom: 2rem;">
           <table class="modern-data-table" id="editor-schedules-table">
             <thead>
               <tr>
@@ -502,16 +1171,15 @@
             </tbody>
           </table>
         </div>
-      </div>
 
-      <!-- Passenger Manifest -->
-      <div class="glass-panel" style="padding: 1.5rem;">
+        <!-- Passenger Manifest Table -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
           <h3 style="font-size: 1.15rem; font-weight: 800; color: #ffffff;">
             <i class="fa-solid fa-users-viewfinder"></i> Live Passenger Manifest & PNR Registry
           </h3>
           <input type="text" id="manifest-search-input" class="route-input" style="max-width: 280px; padding: 0.5rem 0.8rem;" placeholder="Search by PNR or Passenger..." oninput="filterManifest(this.value)">
         </div>
+
         <div class="data-table-container">
           <table class="modern-data-table">
             <thead>
@@ -532,107 +1200,32 @@
             </tbody>
           </table>
         </div>
+
       </div>
 
-    </div>
-  </section>
-
-  <!-- ============================================================================
-       SUPER ADMIN COMMAND PORTAL (ANALYTICS, RBAC ROLES, SUPABASE CONNECT)
-       ============================================================================ -->
-  <section class="role-workspace-panel" id="admin-workspace-view">
-    <div class="container">
-      
-      <div class="workspace-header-bar">
-        <div class="workspace-title">
-          <h2><i class="fa-solid fa-shield-halved" style="color: var(--contrast-coral);"></i> Super Admin Command</h2>
-          <p class="section-subtitle">Executive financial oversight, live Supabase pipeline synchronization, user role administration, and system audit logs.</p>
-        </div>
+      <!-- Tab 3: Super Admin Command Panel -->
+      <div class="portal-panel-content" id="panel-portal-admin">
         
-        <div style="display: flex; gap: 0.75rem;">
-          <button class="ticket-action-btn" onclick="openSupabaseSettingsModal()">
-            <i class="fa-solid fa-database"></i> Supabase Setup
-          </button>
-          <button class="ticket-action-btn" onclick="resetDatabaseDemo()" style="color: var(--contrast-coral); border-color: rgba(239, 68, 68, 0.4);">
-            <i class="fa-solid fa-rotate"></i> Reset Demo Data
-          </button>
-        </div>
-      </div>
-
-      <!-- Key Performance Metrics Cards -->
-      <div class="metrics-cards-grid">
-        
-        <div class="metric-card">
-          <div class="metric-icon-wrap green">
-            <i class="fa-solid fa-bangladeshi-taka-sign"></i>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: #ffffff;">
+              <i class="fa-solid fa-user-shield" style="color: var(--contrast-coral);"></i> User Access Directory & Database Synchronization
+            </h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Assign roles, manage live Supabase pipeline credentials, and review immutable audit logs.</span>
           </div>
-          <div class="metric-info">
-            <h5>Total Net Revenue</h5>
-            <p id="admin-metric-revenue">BDT 0</p>
+          
+          <div style="display: flex; gap: 0.75rem;">
+            <button class="ticket-action-btn" onclick="openSupabaseSettingsModal()">
+              <i class="fa-solid fa-database"></i> Supabase Setup
+            </button>
+            <button class="ticket-action-btn" onclick="resetDatabaseDemo()" style="color: var(--contrast-coral); border-color: rgba(239, 68, 68, 0.4);">
+              <i class="fa-solid fa-rotate"></i> Reset Demo Data
+            </button>
           </div>
         </div>
 
-        <div class="metric-card">
-          <div class="metric-icon-wrap amber">
-            <i class="fa-solid fa-hourglass-half"></i>
-          </div>
-          <div class="metric-info">
-            <h5>Counter Holds (6h)</h5>
-            <p id="admin-metric-holds">BDT 0</p>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon-wrap blue">
-            <i class="fa-solid fa-ticket"></i>
-          </div>
-          <div class="metric-info">
-            <h5>Seats Reserved</h5>
-            <p id="admin-metric-seats">0 Seats</p>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-icon-wrap coral">
-            <i class="fa-solid fa-chart-pie"></i>
-          </div>
-          <div class="metric-info">
-            <h5>Fleet Occupancy</h5>
-            <p id="admin-metric-occupancy">0%</p>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Analytics Charts Row -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-        
-        <div class="glass-panel" style="padding: 1.5rem;">
-          <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: #ffffff;">
-            <i class="fa-solid fa-chart-simple"></i> AC vs. Non-AC Seat Utilization
-          </h4>
-          <div style="height: 240px; position: relative;">
-            <canvas id="occupancyChart"></canvas>
-          </div>
-        </div>
-
-        <div class="glass-panel" style="padding: 1.5rem;">
-          <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: #ffffff;">
-            <i class="fa-solid fa-wallet"></i> Payment Gateway Revenue Split
-          </h4>
-          <div style="height: 240px; position: relative;">
-            <canvas id="revenueChart"></canvas>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- User Role Management Directory -->
-      <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
-        <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem; color: #ffffff;">
-          <i class="fa-solid fa-user-shield"></i> User Role Assignment & Access Directory (RBAC)
-        </h3>
-        <div class="data-table-container">
+        <!-- Users Directory Table -->
+        <div class="data-table-container" style="margin-bottom: 2rem;">
           <table class="modern-data-table">
             <thead>
               <tr>
@@ -648,10 +1241,8 @@
             </tbody>
           </table>
         </div>
-      </div>
 
-      <!-- System Audit Trail -->
-      <div class="glass-panel" style="padding: 1.5rem;">
+        <!-- System Audit Trail -->
         <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem; color: #ffffff;">
           <i class="fa-solid fa-list-check"></i> System Event & Audit Logs
         </h3>
@@ -671,10 +1262,118 @@
             </tbody>
           </table>
         </div>
+
       </div>
 
     </div>
   </section>
+
+  <!-- ============================================================================
+       9. MODERN RICH FOOTER
+       ============================================================================ -->
+  <footer class="site-footer" id="site-footer">
+    <div class="container">
+      
+      <div class="footer-top-grid">
+        
+        <!-- Brand Info -->
+        <div class="footer-brand-col">
+          <div class="brand-wrapper">
+            <img src="assets/logo.png" alt="Provati Logo" class="brand-logo-img">
+            <div class="brand-text-block">
+              <div class="brand-title">
+                Provati <span class="accent">Bus Service</span>
+              </div>
+              <div class="brand-tagline">
+                "Shorok pothe Biman" <i class="fa-solid fa-paper-plane"></i> <span class="bengali-text">(সড়ক পথে বিমান)</span>
+              </div>
+            </div>
+          </div>
+          <p>
+            Bangladesh's premier luxury bus operator providing double-decker sleepers, executive reclining coaches, and high-frequency regional transit with satellite telemetry and verified on-time departures.
+          </p>
+        </div>
+
+        <!-- Quick Links -->
+        <div>
+          <h4 class="footer-heading">Quick Navigation</h4>
+          <ul class="footer-links-list">
+            <li><a href="#hero" class="footer-link">Home Showcase</a></li>
+            <li><a href="#booking-section" class="footer-link">Live Bus Schedules</a></li>
+            <li><a href="#fleet-section" class="footer-link">Operating Fleet</a></li>
+            <li><a href="#experience-section" class="footer-link">Why Choose Provati</a></li>
+            <li><a href="#routes-section" class="footer-link">Popular Highway Routes</a></li>
+            <li><a href="#pnr-track-section" class="footer-link">Track PNR E-Ticket</a></li>
+          </ul>
+        </div>
+
+        <!-- Terminal Stations -->
+        <div>
+          <h4 class="footer-heading">VIP Lounges & Counters</h4>
+          <div class="terminal-contact-item">
+            <i class="fa-solid fa-location-dot"></i>
+            <div>
+              <strong style="color: #ffffff;">Dhaka Central</strong><br>
+              Sayedabad Terminal Gate 3 & Arambagh Royal Lounge
+            </div>
+          </div>
+          <div class="terminal-contact-item">
+            <i class="fa-solid fa-location-dot"></i>
+            <div>
+              <strong style="color: #ffffff;">Chattogram VIP</strong><br>
+              Dampara Provati Lounge & GEC Circle
+            </div>
+          </div>
+          <div class="terminal-contact-item">
+            <i class="fa-solid fa-location-dot"></i>
+            <div>
+              <strong style="color: #ffffff;">Cox's Bazar</strong><br>
+              Kolatoli Beach Circle Lounge Desk
+            </div>
+          </div>
+        </div>
+
+        <!-- Support & Hotline -->
+        <div>
+          <h4 class="footer-heading">Customer Assistance</h4>
+          <p style="margin-bottom: 0.85rem;">Have questions regarding bookings, schedules, or luggage cargo?</p>
+          <div style="font-size: 1.25rem; font-weight: 800; color: var(--accent-emerald); margin-bottom: 0.4rem;">
+            <i class="fa-solid fa-phone"></i> +880 1711 009988
+          </div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 1.25rem;">24/7 Central Highway Dispatch Line</span>
+          
+          <button class="nav-cta-btn" style="width: 100%; justify-content: center;" onclick="openRoleSwitcherModal()">
+            <i class="fa-solid fa-user-gear"></i> Staff Workspace Login
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Bottom Bar -->
+      <div class="footer-bottom-bar">
+        <div>
+          © 2026 Provati Bus Service (প্রভাতী বাস সার্ভিস). All rights reserved. • "Shorok pothe Biman"
+        </div>
+
+        <!-- Payment Partner Badges -->
+        <div class="payment-partner-badges">
+          <i class="fa-brands fa-cc-visa" title="VISA"></i>
+          <i class="fa-brands fa-cc-mastercard" title="MasterCard"></i>
+          <i class="fa-brands fa-cc-amex" title="American Express"></i>
+          <span style="font-size: 0.85rem; font-weight: 800; color: #ff4d94; background: rgba(226, 19, 110, 0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(226, 19, 110, 0.3);">bKash</span>
+          <span style="font-size: 0.85rem; font-weight: 800; color: #ffa439; background: rgba(247, 147, 30, 0.15); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(247, 147, 30, 0.3);">Nagad</span>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ============================================================================
+       FLOATING BACK-TO-TOP BUTTON
+       ============================================================================ -->
+  <button class="floating-back-top" id="floating-back-top" onclick="scrollToTop()" title="Back to top">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
 
   <!-- ============================================================================
        MODAL 1: MULTI-METHOD PAYMENT GATEWAY (BKASH, NAGAD, CARD, COUNTER-HOLD)
@@ -891,7 +1590,7 @@
           </div>
         </div>
 
-        <!-- Stylized Highway Transit Route Map Preview (matching image_8.png in mockup) -->
+        <!-- Stylized Highway Transit Route Map Preview -->
         <div class="ticket-route-map-box">
           <div class="route-map-header">
             <span class="route-map-title"><i class="fa-solid fa-map-location-dot"></i> Live Highway Transit Corridor (N1)</span>
@@ -899,30 +1598,18 @@
           </div>
           <div class="route-svg-wrap">
             <svg viewBox="0 0 540 100" class="transit-map-svg">
-              <!-- Route background path -->
               <path d="M 30 50 Q 150 15, 270 50 T 510 50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4" stroke-linecap="round"/>
-              <!-- Active glowing animated transit line -->
               <path d="M 30 50 Q 150 15, 270 50 T 510 50" fill="none" stroke="url(#routeGlowGrad)" stroke-width="3" stroke-dasharray="6,6" stroke-linecap="round">
                 <animate attributeName="stroke-dashoffset" values="48;0" dur="2s" repeatCount="indefinite" />
               </path>
-              <!-- Waypoints / Stations -->
-              <!-- Origin: Dhaka -->
               <circle cx="30" cy="50" r="7" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
               <text x="30" y="78" fill="#10b981" font-size="11" font-weight="700" text-anchor="middle">Dhaka VIP</text>
-              
-              <!-- Transit Stop 1: Cumilla -->
               <circle cx="180" cy="38" r="4" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5"/>
               <text x="180" y="24" fill="#94a3b8" font-size="9" text-anchor="middle">Cumilla Bypass</text>
-              
-              <!-- Transit Stop 2: Feni -->
               <circle cx="340" cy="52" r="4" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5"/>
               <text x="340" y="72" fill="#94a3b8" font-size="9" text-anchor="middle">Feni Express</text>
-              
-              <!-- Destination: Chattogram -->
               <circle cx="510" cy="50" r="7" fill="#3b82f6" stroke="#ffffff" stroke-width="2"/>
               <text x="500" y="78" fill="#60a5fa" font-size="11" font-weight="700" text-anchor="middle">Chattogram</text>
-
-              <!-- Gradient Defs -->
               <defs>
                 <linearGradient id="routeGlowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stop-color="#10b981"/>
@@ -1099,13 +1786,13 @@
           </h5>
           <p style="font-size: 0.78rem; color: #cbd5e1; line-height: 1.4;">
             Provati Bus operates seamlessly in <strong>Dual-Mode</strong>:
-            Connect your live Supabase cloud project below, or enjoy full mock capability with local persistence and zero setup required.
+            Connected to your remote Supabase cloud project, with automatic local persistence and real-time WebSocket updates.
           </p>
         </div>
 
         <div class="filter-form-group">
           <label class="filter-label">Supabase Project URL</label>
-          <input type="text" id="supabase-url-input" class="route-input" style="padding-left: 1rem;" placeholder="https://xyzproject.supabase.co">
+          <input type="text" id="supabase-url-input" class="route-input" style="padding-left: 1rem;" placeholder="https://vclequhmjpzxhopxuebs.supabase.co">
         </div>
 
         <div class="filter-form-group">
