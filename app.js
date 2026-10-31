@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try { renderAdminWorkspace(); } catch (e) { console.error('admin err', e); }
     try { setupEventListeners(); } catch (e) { console.error('events err', e); }
     try { setupDBListeners(); } catch (e) { console.error('db err', e); }
+    try { updateRadarTelemetryDock('dhaka-coxsbazar'); } catch (e) { console.error('radar err', e); }
 
     // Pre-load primary showcase trip matching the monitor reference mockup
     setTimeout(() => {
@@ -630,6 +631,181 @@ document.addEventListener('DOMContentLoaded', () => {
       bookingSection.scrollIntoView({ behavior: 'smooth' });
     }
     showToast(`Route selected: ${origin} ➔ ${dest} (${category || 'All Fleet'})`);
+  };
+
+  // ============================================================================
+  // SATELLITE HIGHWAY RADAR MAP & CORRIDOR CONTROLS
+  // ============================================================================
+  const radarCorridors = {
+    'dhaka-coxsbazar': {
+      id: 'dhaka-coxsbazar',
+      tag: 'NATIONAL HWY N1',
+      title: "Dhaka ⇄ Cox's Bazar Express Corridor",
+      distance: '395 km Distance',
+      time: '9h 00m Avg Journey',
+      speed: 'Active GPS 82 km/h',
+      coach: 'PVT-DD-701 Double-Decker Sleeper',
+      toll: 'Meghna & Gomti FastTrack Open',
+      fare: 'BDT 2,400',
+      origin: 'Dhaka',
+      dest: "Cox's Bazar",
+      category: 'Sleeper'
+    },
+    'dhaka-chattogram': {
+      id: 'dhaka-chattogram',
+      tag: 'NATIONAL HWY N1',
+      title: 'Dhaka ⇄ Chattogram Business Highway',
+      distance: '248 km Distance',
+      time: '5h 00m Express Transit',
+      speed: 'Active GPS 85 km/h',
+      coach: 'PVT-EX-302 2x2 Business Recliner',
+      toll: 'All 3 Highway Tolls Clear',
+      fare: 'BDT 1,200',
+      origin: 'Dhaka',
+      dest: 'Chattogram',
+      category: 'Business'
+    },
+    'chattogram-dhaka': {
+      id: 'chattogram-dhaka',
+      tag: 'NATIONAL HWY N1',
+      title: 'Chattogram ⇄ Dhaka Executive Return',
+      distance: '248 km Distance',
+      time: '5h 15m Return Transit',
+      speed: 'Active GPS 79 km/h',
+      coach: 'PVT-EX-305 Executive AC',
+      toll: 'Normal Flow (Zero Queues)',
+      fare: 'BDT 1,200',
+      origin: 'Chattogram',
+      dest: 'Dhaka',
+      category: 'Business'
+    },
+    'dhaka-sylhet': {
+      id: 'dhaka-sylhet',
+      tag: 'NATIONAL HWY N2',
+      title: 'Dhaka ⇄ Sylhet Northeast Highway',
+      distance: '240 km Distance',
+      time: '5h 30m Scenic Route',
+      speed: 'Active GPS 74 km/h',
+      coach: 'PVT-NA-108 Fresh Air Express',
+      toll: 'Bhairab Bridge FastTrack Open',
+      fare: 'BDT 680',
+      origin: 'Dhaka',
+      dest: 'Sylhet',
+      category: 'Highway'
+    },
+    'dhaka-cumilla': {
+      id: 'dhaka-cumilla',
+      tag: 'NATIONAL HWY N1',
+      title: 'Dhaka ⇄ Cumilla Fast Transit',
+      distance: '98 km Distance',
+      time: '2h 30m Rapid Shuttle',
+      speed: 'Active GPS 76 km/h',
+      coach: 'PVT-CM-214 Rapid Transit',
+      toll: 'FastTrack Lane 1 & 2 Clear',
+      fare: 'BDT 420',
+      origin: 'Dhaka',
+      dest: 'Cumilla',
+      category: 'Highway'
+    },
+    'chattogram-hathazari': {
+      id: 'chattogram-hathazari',
+      tag: 'REGIONAL DISTRICT R160',
+      title: 'Chattogram ⇄ Hathazari District Corridor',
+      distance: '22 km Distance',
+      time: '1h 00m Commuter Shuttle',
+      speed: 'Active GPS 48 km/h',
+      coach: 'PVT-CM-044 Local Commuter',
+      toll: 'Direct Urban Highway',
+      fare: 'BDT 150',
+      origin: 'Chattogram',
+      dest: 'Hathazari',
+      category: 'Commuter'
+    }
+  };
+
+  let activeRadarCorridorKey = 'dhaka-coxsbazar';
+
+  function updateRadarTelemetryDock(corridorKey) {
+    const data = radarCorridors[corridorKey] || radarCorridors['dhaka-coxsbazar'];
+    activeRadarCorridorKey = corridorKey;
+
+    const tagEl = document.getElementById('radar-dock-tag');
+    const titleEl = document.getElementById('radar-dock-title');
+    const distEl = document.getElementById('radar-dock-dist');
+    const timeEl = document.getElementById('radar-dock-time');
+    const speedEl = document.getElementById('radar-dock-speed');
+    const coachEl = document.getElementById('radar-dock-coach');
+    const tollEl = document.getElementById('radar-dock-toll');
+    const fareEl = document.getElementById('radar-dock-fare');
+
+    if (tagEl) tagEl.textContent = data.tag;
+    if (titleEl) titleEl.textContent = data.title;
+    if (distEl) distEl.innerHTML = `<i class="fa-solid fa-road"></i> ${data.distance}`;
+    if (timeEl) timeEl.innerHTML = `<i class="fa-regular fa-clock"></i> ${data.time}`;
+    if (speedEl) speedEl.innerHTML = `<i class="fa-solid fa-gauge-high"></i> ${data.speed}`;
+    if (coachEl) coachEl.innerHTML = `<i class="fa-solid fa-bus"></i> ${data.coach}`;
+    if (tollEl) tollEl.innerHTML = `<i class="fa-solid fa-bolt"></i> ${data.toll}`;
+    if (fareEl) fareEl.textContent = data.fare;
+
+    // Highlight route cards
+    document.querySelectorAll('.route-corridor-card').forEach(card => {
+      if (card.getAttribute('data-corridor-id') === corridorKey) {
+        card.classList.add('active-corridor-selected');
+      } else {
+        card.classList.remove('active-corridor-selected');
+      }
+    });
+
+    // Update active radar tabs
+    document.querySelectorAll('.radar-tab-btn').forEach(btn => {
+      const tab = btn.getAttribute('data-tab');
+      if (tab === corridorKey) {
+        btn.classList.add('active');
+      } else if (tab !== 'all') {
+        btn.classList.remove('active');
+      }
+    });
+  }
+
+  window.selectMapCorridor = function(corridorKey) {
+    updateRadarTelemetryDock(corridorKey);
+    const container = document.getElementById('routes-radar-map');
+    if (container) {
+      container.className = 'routes-radar-map-container focus-' + corridorKey;
+    }
+  };
+
+  window.highlightRadarRoute = function(corridorKey) {
+    const container = document.getElementById('routes-radar-map');
+    if (container) {
+      container.classList.add('focus-' + corridorKey);
+    }
+    updateRadarTelemetryDock(corridorKey);
+  };
+
+  window.resetRadarHighlight = function() {
+    const container = document.getElementById('routes-radar-map');
+    if (container && activeRadarCorridorKey) {
+      container.className = 'routes-radar-map-container focus-' + activeRadarCorridorKey;
+    }
+  };
+
+  window.filterRadarCorridor = function(tabKey, btnEl) {
+    document.querySelectorAll('.radar-tab-btn').forEach(b => b.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+
+    const container = document.getElementById('routes-radar-map');
+    if (tabKey === 'all') {
+      if (container) container.className = 'routes-radar-map-container';
+      updateRadarTelemetryDock('dhaka-coxsbazar');
+    } else {
+      window.selectMapCorridor(tabKey);
+    }
+  };
+
+  window.bookRadarSelectedCorridor = function() {
+    const data = radarCorridors[activeRadarCorridorKey] || radarCorridors['dhaka-coxsbazar'];
+    window.quickSelectRoute(data.origin, data.dest, data.category);
   };
 
   window.executeInlinePnrSearch = function() {

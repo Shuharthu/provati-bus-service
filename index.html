@@ -800,10 +800,308 @@
         <p class="section-subtitle-lg">Direct express connections along National Highway N1, N2, and regional district transport corridors.</p>
       </div>
 
+      <!-- Interactive Satellite Highway Radar Map -->
+      <div class="routes-radar-map-container" id="routes-radar-map">
+        <!-- Radar Map Header Controls -->
+        <div class="radar-map-header">
+          <div class="radar-header-title-box">
+            <span class="radar-live-badge">
+              <span class="radar-live-beacon"></span> LIVE SATELLITE RADAR
+            </span>
+            <h3 class="radar-title">Provati Highway Transit Network <span class="radar-tagline">National Corridor Live Tracking</span></h3>
+          </div>
+          
+          <!-- Highway Filters Tabs -->
+          <div class="radar-tabs-nav" role="tablist">
+            <button class="radar-tab-btn active" data-tab="all" onclick="filterRadarCorridor('all', this)">
+              <i class="fa-solid fa-satellite-dish"></i> All Corridors
+            </button>
+            <button class="radar-tab-btn" data-tab="dhaka-coxsbazar" onclick="filterRadarCorridor('dhaka-coxsbazar', this)">
+              <span class="corridor-indicator n1"></span> N1 Dhaka–Cox's Bazar
+            </button>
+            <button class="radar-tab-btn" data-tab="dhaka-chattogram" onclick="filterRadarCorridor('dhaka-chattogram', this)">
+              <span class="corridor-indicator n1"></span> N1 Dhaka–Ctg
+            </button>
+            <button class="radar-tab-btn" data-tab="dhaka-sylhet" onclick="filterRadarCorridor('dhaka-sylhet', this)">
+              <span class="corridor-indicator n2"></span> N2 Dhaka–Sylhet
+            </button>
+            <button class="radar-tab-btn" data-tab="chattogram-hathazari" onclick="filterRadarCorridor('chattogram-hathazari', this)">
+              <span class="corridor-indicator r160"></span> R160 Ctg–Hathazari
+            </button>
+          </div>
+
+          <div class="radar-stats-pill">
+            <i class="fa-solid fa-signal" style="color: var(--accent-emerald);"></i>
+            <span>6 Coaches En Route • GPS 60fps</span>
+          </div>
+        </div>
+
+        <!-- Radar Interactive Canvas Wrap -->
+        <div class="radar-map-canvas-wrap">
+          <svg class="radar-svg-canvas" viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <!-- Gradients for highways -->
+              <linearGradient id="n1HighwayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10b981" />
+                <stop offset="50%" stop-color="#06b6d4" />
+                <stop offset="100%" stop-color="#3b82f6" />
+              </linearGradient>
+              <linearGradient id="n2HighwayGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#10b981" />
+                <stop offset="60%" stop-color="#8b5cf6" />
+                <stop offset="100%" stop-color="#ec4899" />
+              </linearGradient>
+              <linearGradient id="r160HighwayGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                <stop offset="0%" stop-color="#06b6d4" />
+                <stop offset="100%" stop-color="#f59e0b" />
+              </linearGradient>
+              <radialGradient id="radarScanGrad" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="rgba(16, 185, 129, 0.18)"/>
+                <stop offset="70%" stop-color="rgba(16, 185, 129, 0.04)"/>
+                <stop offset="100%" stop-color="rgba(16, 185, 129, 0)"/>
+              </radialGradient>
+              <filter id="radarGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="4" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+
+            <!-- Grid backdrop -->
+            <g class="radar-bg-grid" opacity="0.15">
+              <line x1="0" y1="80" x2="960" y2="80" stroke="#0ea5e9" stroke-width="0.7" stroke-dasharray="4 6"/>
+              <line x1="0" y1="160" x2="960" y2="160" stroke="#0ea5e9" stroke-width="0.7" stroke-dasharray="4 6"/>
+              <line x1="0" y1="240" x2="960" y2="240" stroke="#0ea5e9" stroke-width="0.7" stroke-dasharray="4 6"/>
+              <line x1="0" y1="320" x2="960" y2="320" stroke="#0ea5e9" stroke-width="0.7" stroke-dasharray="4 6"/>
+              <line x1="0" y1="400" x2="960" y2="400" stroke="#0ea5e9" stroke-width="0.7" stroke-dasharray="4 6"/>
+              <line x1="160" y1="0" x2="160" y2="480" stroke="#0ea5e9" stroke-width="0.7" stroke-dasharray="4 6"/>
+              <line x1="320" y1="0" x2="320" y2="480" stroke="#0ea5e9" stroke-width="0.7" stroke-dasharray="4 6"/>
+              <line x1="480" y1="0" x2="480" y2="480" stroke="#0ea5e9" stroke-width="0.7" stroke-dasharray="4 6"/>
+              <line x1="640" y1="0" x2="640" y2="480" stroke="#0ea5e9" stroke-width="0.7" stroke-dasharray="4 6"/>
+              <line x1="800" y1="0" x2="800" y2="480" stroke="#0ea5e9" stroke-width="0.7" stroke-dasharray="4 6"/>
+            </g>
+
+            <!-- Radar range rings -->
+            <circle cx="260" cy="200" r="90" fill="url(#radarScanGrad)" stroke="rgba(16, 185, 129, 0.2)" stroke-width="1" stroke-dasharray="3 4"/>
+            <circle cx="260" cy="200" r="180" fill="none" stroke="rgba(16, 185, 129, 0.12)" stroke-width="1" stroke-dasharray="4 6"/>
+            <circle cx="720" cy="375" r="110" fill="url(#radarScanGrad)" stroke="rgba(6, 182, 212, 0.2)" stroke-width="1" stroke-dasharray="3 4"/>
+
+            <!-- Subtle Geographic Coastline / Bay of Bengal watermark -->
+            <path d="M 680 470 C 700 420, 715 390, 750 420 C 780 445, 830 470, 870 475" fill="none" stroke="rgba(56, 189, 248, 0.12)" stroke-width="2" stroke-dasharray="6 4" />
+            <text x="750" y="465" fill="rgba(56, 189, 248, 0.25)" font-size="10" font-weight="700" letter-spacing="2">BAY OF BENGAL CORRIDOR</text>
+
+            <!-- HIGHWAY PATHS -->
+            <!-- 1. N1 Corridor (Dhaka -> Cumilla -> Feni -> Chattogram -> Cox's Bazar) -->
+            <g class="radar-highway-group" id="radar-group-n1" onclick="selectMapCorridor('dhaka-coxsbazar')">
+              <path class="hwy-glow-path" d="M 260 200 C 330 225, 400 255, 460 275 C 520 295, 560 310, 630 335 C 680 355, 700 365, 720 375 C 760 395, 805 425, 860 450" />
+              <path class="hwy-bed-path" d="M 260 200 C 330 225, 400 255, 460 275 C 520 295, 560 310, 630 335 C 680 355, 700 365, 720 375 C 760 395, 805 425, 860 450" />
+              <path id="path-n1-corridor" class="hwy-stream-path n1-stream" d="M 260 200 C 330 225, 400 255, 460 275 C 520 295, 560 310, 630 335 C 680 355, 700 365, 720 375 C 760 395, 805 425, 860 450" stroke="url(#n1HighwayGrad)" />
+            </g>
+
+            <!-- 2. N2 Corridor (Dhaka -> Bhairab -> Brahmanbaria -> Sylhet) -->
+            <g class="radar-highway-group" id="radar-group-n2" onclick="selectMapCorridor('dhaka-sylhet')">
+              <path class="hwy-glow-path" d="M 260 200 C 370 160, 500 125, 720 80" />
+              <path class="hwy-bed-path" d="M 260 200 C 370 160, 500 125, 720 80" />
+              <path id="path-n2-corridor" class="hwy-stream-path n2-stream" d="M 260 200 C 370 160, 500 125, 720 80" stroke="url(#n2HighwayGrad)" />
+            </g>
+
+            <!-- 3. R160 Corridor (Chattogram -> Hathazari) -->
+            <g class="radar-highway-group" id="radar-group-r160" onclick="selectMapCorridor('chattogram-hathazari')">
+              <path class="hwy-glow-path" d="M 720 375 C 730 350, 735 330, 740 305" />
+              <path class="hwy-bed-path" d="M 720 375 C 730 350, 735 330, 740 305" />
+              <path id="path-r160-corridor" class="hwy-stream-path r160-stream" d="M 720 375 C 730 350, 735 330, 740 305" stroke="url(#r160HighwayGrad)" />
+            </g>
+
+            <!-- TOLL PLAZAS & BRIDGES -->
+            <g class="toll-marker" transform="translate(345, 230)" title="Meghna Bridge Toll Plaza">
+              <rect x="-14" y="-7" width="28" height="14" rx="3" fill="#0f172a" stroke="#10b981" stroke-width="1.2"/>
+              <text x="0" y="3" fill="#34d399" font-size="7" font-weight="800" text-anchor="middle">TOLL</text>
+              <text x="0" y="15" fill="#94a3b8" font-size="7.5" text-anchor="middle">Meghna Bridge</text>
+            </g>
+            <g class="toll-marker" transform="translate(400, 250)" title="Gomti Bridge Toll Plaza">
+              <rect x="-14" y="-7" width="28" height="14" rx="3" fill="#0f172a" stroke="#06b6d4" stroke-width="1.2"/>
+              <text x="0" y="3" fill="#22d3ee" font-size="7" font-weight="800" text-anchor="middle">TOLL</text>
+              <text x="0" y="15" fill="#94a3b8" font-size="7.5" text-anchor="middle">Gomti Bridge</text>
+            </g>
+            <g class="toll-marker" transform="translate(760, 395)" title="Bangabandhu Karnaphuli Tunnel">
+              <rect x="-16" y="-7" width="32" height="14" rx="3" fill="#0f172a" stroke="#3b82f6" stroke-width="1.2"/>
+              <text x="0" y="3" fill="#60a5fa" font-size="6.5" font-weight="800" text-anchor="middle">TUNNEL</text>
+              <text x="0" y="15" fill="#94a3b8" font-size="7.5" text-anchor="middle">Karnaphuli</text>
+            </g>
+
+            <!-- REAL-TIME MOVING COACH SPRITES ON PATHS -->
+            <!-- Bus 1: N1 Southbound (Dhaka -> Cox's Bazar) -->
+            <g class="moving-radar-bus bus-n1-south">
+              <animateMotion dur="16s" repeatCount="indefinite" rotate="auto">
+                <mpath href="#path-n1-corridor"/>
+              </animateMotion>
+              <circle cx="0" cy="0" r="7" fill="#10b981" filter="url(#radarGlow)" />
+              <circle cx="0" cy="0" r="3.5" fill="#ffffff" />
+              <polygon points="4,-4 22,-9 22,9 4,4" fill="rgba(16, 185, 129, 0.3)" />
+              <g transform="translate(0, -14)" class="bus-tooltip-tag">
+                <rect x="-38" y="-10" width="76" height="15" rx="4" fill="rgba(15, 23, 42, 0.9)" stroke="#10b981" stroke-width="0.8"/>
+                <text x="0" y="1" fill="#34d399" font-size="7.5" font-weight="700" text-anchor="middle">PVT-701 • 82km/h</text>
+              </g>
+            </g>
+
+            <!-- Bus 2: N1 Northbound (Chattogram -> Dhaka) -->
+            <g class="moving-radar-bus bus-n1-north">
+              <animateMotion dur="18s" repeatCount="indefinite" rotate="auto" keyPoints="0.75;0" keyTimes="0;1">
+                <mpath href="#path-n1-corridor"/>
+              </animateMotion>
+              <circle cx="0" cy="0" r="7" fill="#06b6d4" filter="url(#radarGlow)" />
+              <circle cx="0" cy="0" r="3.5" fill="#ffffff" />
+              <polygon points="4,-4 22,-9 22,9 4,4" fill="rgba(6, 182, 212, 0.3)" />
+              <g transform="translate(0, -14)" class="bus-tooltip-tag">
+                <rect x="-38" y="-10" width="76" height="15" rx="4" fill="rgba(15, 23, 42, 0.9)" stroke="#06b6d4" stroke-width="0.8"/>
+                <text x="0" y="1" fill="#22d3ee" font-size="7.5" font-weight="700" text-anchor="middle">PVT-302 • 79km/h</text>
+              </g>
+            </g>
+
+            <!-- Bus 3: N2 Eastbound (Dhaka -> Sylhet) -->
+            <g class="moving-radar-bus bus-n2-east">
+              <animateMotion dur="14s" repeatCount="indefinite" rotate="auto">
+                <mpath href="#path-n2-corridor"/>
+              </animateMotion>
+              <circle cx="0" cy="0" r="7" fill="#a855f7" filter="url(#radarGlow)" />
+              <circle cx="0" cy="0" r="3.5" fill="#ffffff" />
+              <polygon points="4,-4 22,-9 22,9 4,4" fill="rgba(168, 85, 247, 0.3)" />
+              <g transform="translate(0, -14)" class="bus-tooltip-tag">
+                <rect x="-38" y="-10" width="76" height="15" rx="4" fill="rgba(15, 23, 42, 0.9)" stroke="#a855f7" stroke-width="0.8"/>
+                <text x="0" y="1" fill="#c084fc" font-size="7.5" font-weight="700" text-anchor="middle">PVT-108 • 74km/h</text>
+              </g>
+            </g>
+
+            <!-- Bus 4: R160 Regional (Chattogram -> Hathazari) -->
+            <g class="moving-radar-bus bus-r160-north">
+              <animateMotion dur="8s" repeatCount="indefinite" rotate="auto">
+                <mpath href="#path-r160-corridor"/>
+              </animateMotion>
+              <circle cx="0" cy="0" r="6" fill="#f59e0b" filter="url(#radarGlow)" />
+              <circle cx="0" cy="0" r="3" fill="#ffffff" />
+              <g transform="translate(0, -12)" class="bus-tooltip-tag">
+                <rect x="-34" y="-9" width="68" height="14" rx="3" fill="rgba(15, 23, 42, 0.9)" stroke="#f59e0b" stroke-width="0.8"/>
+                <text x="0" y="1" fill="#fbbf24" font-size="7" font-weight="700" text-anchor="middle">PVT-044 • 48km/h</text>
+              </g>
+            </g>
+
+            <!-- TERMINAL STATIONS -->
+            <!-- Dhaka Terminal -->
+            <g class="radar-station-node" transform="translate(260, 200)" onclick="selectMapCorridor('dhaka-chattogram')">
+              <circle cx="0" cy="0" r="16" class="station-beacon-wave" fill="none" stroke="#10b981" stroke-width="1.5"/>
+              <circle cx="0" cy="0" r="8" fill="#10b981" />
+              <circle cx="0" cy="0" r="4" fill="#0f172a" />
+              <g class="station-label-card" transform="translate(0, -22)">
+                <rect x="-65" y="-14" width="130" height="18" rx="6" fill="#0f172a" stroke="#10b981" stroke-width="1.2"/>
+                <text x="0" y="-2" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">DHAKA VIP (ঢাকা)</text>
+              </g>
+              <text x="0" y="24" fill="#94a3b8" font-size="8" text-anchor="middle">Sayedabad & Kallayanpur</text>
+            </g>
+
+            <!-- Cumilla Station -->
+            <g class="radar-station-node" transform="translate(460, 275)" onclick="selectMapCorridor('dhaka-cumilla')">
+              <circle cx="0" cy="0" r="12" class="station-beacon-wave" fill="none" stroke="#06b6d4" stroke-width="1.2"/>
+              <circle cx="0" cy="0" r="6" fill="#06b6d4" />
+              <circle cx="0" cy="0" r="3" fill="#0f172a" />
+              <g class="station-label-card" transform="translate(0, -18)">
+                <rect x="-50" y="-12" width="100" height="16" rx="5" fill="#0f172a" stroke="#06b6d4" stroke-width="1"/>
+                <text x="0" y="-1" fill="#ffffff" font-size="8" font-weight="700" text-anchor="middle">CUMILLA (কুমিল্লা)</text>
+              </g>
+              <text x="0" y="20" fill="#94a3b8" font-size="7.5" text-anchor="middle">Paduar Bazar</text>
+            </g>
+
+            <!-- Feni Node -->
+            <g class="radar-station-node" transform="translate(630, 335)">
+              <circle cx="0" cy="0" r="5" fill="#64748b" />
+              <circle cx="0" cy="0" r="2.5" fill="#0f172a" />
+              <text x="0" y="-9" fill="#cbd5e1" font-size="8" font-weight="700" text-anchor="middle">FENI (ফেনী)</text>
+              <text x="0" y="15" fill="#94a3b8" font-size="7" text-anchor="middle">Trunk Rd Bypass</text>
+            </g>
+
+            <!-- Chattogram Terminal -->
+            <g class="radar-station-node" transform="translate(720, 375)" onclick="selectMapCorridor('chattogram-dhaka')">
+              <circle cx="0" cy="0" r="16" class="station-beacon-wave" fill="none" stroke="#06b6d4" stroke-width="1.5"/>
+              <circle cx="0" cy="0" r="8" fill="#06b6d4" />
+              <circle cx="0" cy="0" r="4" fill="#0f172a" />
+              <g class="station-label-card" transform="translate(0, -22)">
+                <rect x="-65" y="-14" width="130" height="18" rx="6" fill="#0f172a" stroke="#06b6d4" stroke-width="1.2"/>
+                <text x="0" y="-2" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">CHATTOGRAM (চট্টগ্রাম)</text>
+              </g>
+              <text x="0" y="24" fill="#94a3b8" font-size="8" text-anchor="middle">Dampara VIP Lounge</text>
+            </g>
+
+            <!-- Hathazari Regional Station -->
+            <g class="radar-station-node" transform="translate(740, 305)" onclick="selectMapCorridor('chattogram-hathazari')">
+              <circle cx="0" cy="0" r="10" class="station-beacon-wave" fill="none" stroke="#f59e0b" stroke-width="1.2"/>
+              <circle cx="0" cy="0" r="5" fill="#f59e0b" />
+              <circle cx="0" cy="0" r="2.5" fill="#0f172a" />
+              <g class="station-label-card" transform="translate(45, -2)">
+                <rect x="-42" y="-10" width="84" height="15" rx="4" fill="#0f172a" stroke="#f59e0b" stroke-width="0.9"/>
+                <text x="0" y="1" fill="#fef08a" font-size="7.5" font-weight="700" text-anchor="middle">HATHAZARI (হাটহাজারী)</text>
+              </g>
+            </g>
+
+            <!-- Cox's Bazar Terminal -->
+            <g class="radar-station-node" transform="translate(860, 450)" onclick="selectMapCorridor('dhaka-coxsbazar')">
+              <circle cx="0" cy="0" r="16" class="station-beacon-wave" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+              <circle cx="0" cy="0" r="8" fill="#3b82f6" />
+              <circle cx="0" cy="0" r="4" fill="#0f172a" />
+              <g class="station-label-card" transform="translate(0, -22)">
+                <rect x="-65" y="-14" width="130" height="18" rx="6" fill="#0f172a" stroke="#3b82f6" stroke-width="1.2"/>
+                <text x="0" y="-2" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">COX'S BAZAR (কক্সবাজার)</text>
+              </g>
+              <text x="0" y="24" fill="#94a3b8" font-size="8" text-anchor="middle">Kolatoli Beach Circle</text>
+            </g>
+
+            <!-- Sylhet Kadamtoli Hub -->
+            <g class="radar-station-node" transform="translate(720, 80)" onclick="selectMapCorridor('dhaka-sylhet')">
+              <circle cx="0" cy="0" r="16" class="station-beacon-wave" fill="none" stroke="#ec4899" stroke-width="1.5"/>
+              <circle cx="0" cy="0" r="8" fill="#ec4899" />
+              <circle cx="0" cy="0" r="4" fill="#0f172a" />
+              <g class="station-label-card" transform="translate(0, -22)">
+                <rect x="-65" y="-14" width="130" height="18" rx="6" fill="#0f172a" stroke="#ec4899" stroke-width="1.2"/>
+                <text x="0" y="-2" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">SYLHET (সিলেট)</text>
+              </g>
+              <text x="0" y="24" fill="#94a3b8" font-size="8" text-anchor="middle">Kadamtoli Highway Hub</text>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Radar Selected Corridor Telemetry Dock -->
+        <div class="radar-telemetry-dock" id="radar-telemetry-dock">
+          <div class="dock-left-info">
+            <div class="dock-badge-row">
+              <span class="dock-corridor-tag" id="radar-dock-tag">NATIONAL HWY N1</span>
+              <span class="dock-status-pill"><i class="fa-solid fa-circle-check"></i> Highway Flow Optimal</span>
+              <span class="dock-toll-pill" id="radar-dock-toll"><i class="fa-solid fa-bolt"></i> FastTrack Plazas Active</span>
+            </div>
+            <h4 class="dock-route-title" id="radar-dock-title">Dhaka ⇄ Cox's Bazar Express Corridor</h4>
+            <div class="dock-metrics-row">
+              <span id="radar-dock-dist"><i class="fa-solid fa-road"></i> 395 km Distance</span>
+              <span>•</span>
+              <span id="radar-dock-time"><i class="fa-regular fa-clock"></i> 9h 00m Avg Journey</span>
+              <span>•</span>
+              <span id="radar-dock-speed"><i class="fa-solid fa-gauge-high"></i> Active GPS 82 km/h</span>
+              <span>•</span>
+              <span id="radar-dock-coach"><i class="fa-solid fa-bus"></i> PVT-DD-701 Double-Decker</span>
+            </div>
+          </div>
+          <div class="dock-right-action">
+            <div class="dock-fare-box">
+              <span class="dock-fare-label">Starting Fare</span>
+              <span class="dock-fare-val" id="radar-dock-fare">BDT 2,400</span>
+            </div>
+            <button class="dock-book-btn" id="radar-dock-book-btn" onclick="bookRadarSelectedCorridor()">
+              <span>Book This Route</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="routes-grid">
         
         <!-- Route 1 -->
-        <div class="route-corridor-card">
+        <div class="route-corridor-card" data-corridor-id="dhaka-coxsbazar" onmouseenter="highlightRadarRoute('dhaka-coxsbazar')" onmouseleave="resetRadarHighlight()" onclick="selectMapCorridor('dhaka-coxsbazar')">
           <div class="route-corridor-top">
             <span class="corridor-highway-tag">NATIONAL HWY N1</span>
             <span class="service-type-badge sleeper">Double-Decker</span>
@@ -813,10 +1111,36 @@
               <h4>Dhaka</h4>
               <span>Sayedabad VIP</span>
             </div>
-            <div class="corridor-plane-divider">
-              <i class="fa-solid fa-paper-plane"></i>
-              <span>9h 00m</span>
+            
+            <div class="corridor-route-map-track">
+              <div class="route-node-circle origin" title="Sayedabad VIP Terminal">
+                <span class="node-core"></span>
+                <span class="node-pulse"></span>
+              </div>
+              <div class="route-animated-track-rail">
+                <svg class="track-svg" viewBox="0 0 160 16" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="cardGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#10b981" stop-opacity="0.2"/>
+                      <stop offset="50%" stop-color="#06b6d4" stop-opacity="0.95"/>
+                      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.3"/>
+                    </linearGradient>
+                  </defs>
+                  <line x1="0" y1="8" x2="160" y2="8" class="track-base-line" />
+                  <line x1="0" y1="8" x2="160" y2="8" class="track-flow-line" stroke="url(#cardGrad1)" />
+                </svg>
+                <div class="track-moving-bus" style="animation-duration: 5.5s;">
+                  <i class="fa-solid fa-bus"></i>
+                  <span class="bus-headlight-glow"></span>
+                </div>
+                <span class="track-duration-pill"><i class="fa-regular fa-clock"></i> 9h 00m</span>
+              </div>
+              <div class="route-node-circle dest" title="Kolatoli Beach Circle">
+                <span class="node-core"></span>
+                <span class="node-pulse"></span>
+              </div>
             </div>
+
             <div class="corridor-station-node" style="text-align: right;">
               <h4>Cox's Bazar</h4>
               <span>Kolatoli Circle</span>
@@ -834,14 +1158,14 @@
               <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">Per Seat Fare</span>
               <span class="corridor-fare-amount">BDT 2,400</span>
             </div>
-            <button class="fleet-filter-btn" onclick="quickSelectRoute('Dhaka', 'Cox\'s Bazar', 'Sleeper')">
+            <button class="fleet-filter-btn" onclick="event.stopPropagation(); quickSelectRoute('Dhaka', 'Cox\'s Bazar', 'Sleeper')">
               Book Route <i class="fa-solid fa-arrow-right"></i>
             </button>
           </div>
         </div>
 
         <!-- Route 2 -->
-        <div class="route-corridor-card">
+        <div class="route-corridor-card" data-corridor-id="dhaka-chattogram" onmouseenter="highlightRadarRoute('dhaka-chattogram')" onmouseleave="resetRadarHighlight()" onclick="selectMapCorridor('dhaka-chattogram')">
           <div class="route-corridor-top">
             <span class="corridor-highway-tag">NATIONAL HWY N1</span>
             <span class="service-type-badge ac">Business AC</span>
@@ -851,10 +1175,36 @@
               <h4>Dhaka</h4>
               <span>Kallayanpur VIP</span>
             </div>
-            <div class="corridor-plane-divider">
-              <i class="fa-solid fa-paper-plane"></i>
-              <span>5h 00m</span>
+
+            <div class="corridor-route-map-track">
+              <div class="route-node-circle origin" title="Kallayanpur VIP Terminal">
+                <span class="node-core"></span>
+                <span class="node-pulse"></span>
+              </div>
+              <div class="route-animated-track-rail">
+                <svg class="track-svg" viewBox="0 0 160 16" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="cardGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#10b981" stop-opacity="0.2"/>
+                      <stop offset="50%" stop-color="#10b981" stop-opacity="0.95"/>
+                      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.3"/>
+                    </linearGradient>
+                  </defs>
+                  <line x1="0" y1="8" x2="160" y2="8" class="track-base-line" />
+                  <line x1="0" y1="8" x2="160" y2="8" class="track-flow-line" stroke="url(#cardGrad2)" />
+                </svg>
+                <div class="track-moving-bus" style="animation-duration: 4.8s;">
+                  <i class="fa-solid fa-bus"></i>
+                  <span class="bus-headlight-glow"></span>
+                </div>
+                <span class="track-duration-pill"><i class="fa-regular fa-clock"></i> 5h 00m</span>
+              </div>
+              <div class="route-node-circle dest" title="GEC Circle Lounge">
+                <span class="node-core"></span>
+                <span class="node-pulse"></span>
+              </div>
             </div>
+
             <div class="corridor-station-node" style="text-align: right;">
               <h4>Chattogram</h4>
               <span>GEC Circle</span>
@@ -872,14 +1222,14 @@
               <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">Per Seat Fare</span>
               <span class="corridor-fare-amount">BDT 1,200</span>
             </div>
-            <button class="fleet-filter-btn" onclick="quickSelectRoute('Dhaka', 'Chattogram', 'Business')">
+            <button class="fleet-filter-btn" onclick="event.stopPropagation(); quickSelectRoute('Dhaka', 'Chattogram', 'Business')">
               Book Route <i class="fa-solid fa-arrow-right"></i>
             </button>
           </div>
         </div>
 
         <!-- Route 3 -->
-        <div class="route-corridor-card">
+        <div class="route-corridor-card" data-corridor-id="chattogram-dhaka" onmouseenter="highlightRadarRoute('chattogram-dhaka')" onmouseleave="resetRadarHighlight()" onclick="selectMapCorridor('chattogram-dhaka')">
           <div class="route-corridor-top">
             <span class="corridor-highway-tag">NATIONAL HWY N1</span>
             <span class="service-type-badge ac">Executive Return</span>
@@ -889,10 +1239,36 @@
               <h4>Chattogram</h4>
               <span>Dampara Lounge</span>
             </div>
-            <div class="corridor-plane-divider">
-              <i class="fa-solid fa-paper-plane"></i>
-              <span>5h 15m</span>
+
+            <div class="corridor-route-map-track">
+              <div class="route-node-circle origin" title="Dampara VIP Lounge">
+                <span class="node-core"></span>
+                <span class="node-pulse"></span>
+              </div>
+              <div class="route-animated-track-rail">
+                <svg class="track-svg" viewBox="0 0 160 16" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="cardGrad3" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.2"/>
+                      <stop offset="50%" stop-color="#3b82f6" stop-opacity="0.95"/>
+                      <stop offset="100%" stop-color="#10b981" stop-opacity="0.3"/>
+                    </linearGradient>
+                  </defs>
+                  <line x1="0" y1="8" x2="160" y2="8" class="track-base-line" />
+                  <line x1="0" y1="8" x2="160" y2="8" class="track-flow-line" stroke="url(#cardGrad3)" />
+                </svg>
+                <div class="track-moving-bus" style="animation-duration: 5s;">
+                  <i class="fa-solid fa-bus"></i>
+                  <span class="bus-headlight-glow"></span>
+                </div>
+                <span class="track-duration-pill"><i class="fa-regular fa-clock"></i> 5h 15m</span>
+              </div>
+              <div class="route-node-circle dest" title="Sayedabad Gate">
+                <span class="node-core"></span>
+                <span class="node-pulse"></span>
+              </div>
             </div>
+
             <div class="corridor-station-node" style="text-align: right;">
               <h4>Dhaka</h4>
               <span>Sayedabad Gate</span>
@@ -910,14 +1286,14 @@
               <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">Per Seat Fare</span>
               <span class="corridor-fare-amount">BDT 1,200</span>
             </div>
-            <button class="fleet-filter-btn" onclick="quickSelectRoute('Chattogram', 'Dhaka', 'Business')">
+            <button class="fleet-filter-btn" onclick="event.stopPropagation(); quickSelectRoute('Chattogram', 'Dhaka', 'Business')">
               Book Route <i class="fa-solid fa-arrow-right"></i>
             </button>
           </div>
         </div>
 
         <!-- Route 4 -->
-        <div class="route-corridor-card">
+        <div class="route-corridor-card" data-corridor-id="dhaka-sylhet" onmouseenter="highlightRadarRoute('dhaka-sylhet')" onmouseleave="resetRadarHighlight()" onclick="selectMapCorridor('dhaka-sylhet')">
           <div class="route-corridor-top">
             <span class="corridor-highway-tag">NATIONAL HWY N2</span>
             <span class="service-type-badge non-ac">Highway Express</span>
@@ -927,10 +1303,36 @@
               <h4>Dhaka</h4>
               <span>Mohakhali Terminal</span>
             </div>
-            <div class="corridor-plane-divider">
-              <i class="fa-solid fa-paper-plane"></i>
-              <span>5h 30m</span>
+
+            <div class="corridor-route-map-track">
+              <div class="route-node-circle origin" title="Mohakhali Highway Terminal">
+                <span class="node-core"></span>
+                <span class="node-pulse"></span>
+              </div>
+              <div class="route-animated-track-rail">
+                <svg class="track-svg" viewBox="0 0 160 16" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="cardGrad4" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.2"/>
+                      <stop offset="50%" stop-color="#ec4899" stop-opacity="0.95"/>
+                      <stop offset="100%" stop-color="#a855f7" stop-opacity="0.3"/>
+                    </linearGradient>
+                  </defs>
+                  <line x1="0" y1="8" x2="160" y2="8" class="track-base-line" />
+                  <line x1="0" y1="8" x2="160" y2="8" class="track-flow-line" stroke="url(#cardGrad4)" />
+                </svg>
+                <div class="track-moving-bus" style="animation-duration: 5.2s;">
+                  <i class="fa-solid fa-bus"></i>
+                  <span class="bus-headlight-glow"></span>
+                </div>
+                <span class="track-duration-pill"><i class="fa-regular fa-clock"></i> 5h 30m</span>
+              </div>
+              <div class="route-node-circle dest" title="Kadamtoli Main Station">
+                <span class="node-core"></span>
+                <span class="node-pulse"></span>
+              </div>
             </div>
+
             <div class="corridor-station-node" style="text-align: right;">
               <h4>Sylhet</h4>
               <span>Kadamtoli Main</span>
@@ -948,14 +1350,14 @@
               <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">Per Seat Fare</span>
               <span class="corridor-fare-amount">BDT 680</span>
             </div>
-            <button class="fleet-filter-btn" onclick="quickSelectRoute('Dhaka', 'Sylhet', 'Highway')">
+            <button class="fleet-filter-btn" onclick="event.stopPropagation(); quickSelectRoute('Dhaka', 'Sylhet', 'Highway')">
               Book Route <i class="fa-solid fa-arrow-right"></i>
             </button>
           </div>
         </div>
 
         <!-- Route 5 -->
-        <div class="route-corridor-card">
+        <div class="route-corridor-card" data-corridor-id="dhaka-cumilla" onmouseenter="highlightRadarRoute('dhaka-cumilla')" onmouseleave="resetRadarHighlight()" onclick="selectMapCorridor('dhaka-cumilla')">
           <div class="route-corridor-top">
             <span class="corridor-highway-tag">NATIONAL HWY N1</span>
             <span class="service-type-badge non-ac">Corridor</span>
@@ -965,10 +1367,36 @@
               <h4>Dhaka</h4>
               <span>Sayedabad Counter</span>
             </div>
-            <div class="corridor-plane-divider">
-              <i class="fa-solid fa-paper-plane"></i>
-              <span>2h 30m</span>
+
+            <div class="corridor-route-map-track">
+              <div class="route-node-circle origin" title="Sayedabad Fast Counter">
+                <span class="node-core"></span>
+                <span class="node-pulse"></span>
+              </div>
+              <div class="route-animated-track-rail">
+                <svg class="track-svg" viewBox="0 0 160 16" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="cardGrad5" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#10b981" stop-opacity="0.2"/>
+                      <stop offset="50%" stop-color="#06b6d4" stop-opacity="0.95"/>
+                      <stop offset="100%" stop-color="#10b981" stop-opacity="0.3"/>
+                    </linearGradient>
+                  </defs>
+                  <line x1="0" y1="8" x2="160" y2="8" class="track-base-line" />
+                  <line x1="0" y1="8" x2="160" y2="8" class="track-flow-line" stroke="url(#cardGrad5)" />
+                </svg>
+                <div class="track-moving-bus" style="animation-duration: 4.2s;">
+                  <i class="fa-solid fa-bus"></i>
+                  <span class="bus-headlight-glow"></span>
+                </div>
+                <span class="track-duration-pill"><i class="fa-regular fa-clock"></i> 2h 30m</span>
+              </div>
+              <div class="route-node-circle dest" title="Paduar Bazar Junction">
+                <span class="node-core"></span>
+                <span class="node-pulse"></span>
+              </div>
             </div>
+
             <div class="corridor-station-node" style="text-align: right;">
               <h4>Cumilla</h4>
               <span>Paduar Bazar</span>
@@ -986,14 +1414,14 @@
               <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">Per Seat Fare</span>
               <span class="corridor-fare-amount">BDT 420</span>
             </div>
-            <button class="fleet-filter-btn" onclick="quickSelectRoute('Dhaka', 'Cumilla', 'Highway')">
+            <button class="fleet-filter-btn" onclick="event.stopPropagation(); quickSelectRoute('Dhaka', 'Cumilla', 'Highway')">
               Book Route <i class="fa-solid fa-arrow-right"></i>
             </button>
           </div>
         </div>
 
         <!-- Route 6 -->
-        <div class="route-corridor-card">
+        <div class="route-corridor-card" data-corridor-id="chattogram-hathazari" onmouseenter="highlightRadarRoute('chattogram-hathazari')" onmouseleave="resetRadarHighlight()" onclick="selectMapCorridor('chattogram-hathazari')">
           <div class="route-corridor-top">
             <span class="corridor-highway-tag">REGIONAL DISTRICT</span>
             <span class="service-type-badge non-ac">Commuter</span>
@@ -1003,10 +1431,36 @@
               <h4>Chattogram</h4>
               <span>Muradpur Stand</span>
             </div>
-            <div class="corridor-plane-divider">
-              <i class="fa-solid fa-paper-plane"></i>
-              <span>1h 00m</span>
+
+            <div class="corridor-route-map-track">
+              <div class="route-node-circle origin" title="Muradpur Regional Stand">
+                <span class="node-core"></span>
+                <span class="node-pulse"></span>
+              </div>
+              <div class="route-animated-track-rail">
+                <svg class="track-svg" viewBox="0 0 160 16" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="cardGrad6" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.2"/>
+                      <stop offset="50%" stop-color="#fbbf24" stop-opacity="0.95"/>
+                      <stop offset="100%" stop-color="#10b981" stop-opacity="0.3"/>
+                    </linearGradient>
+                  </defs>
+                  <line x1="0" y1="8" x2="160" y2="8" class="track-base-line" />
+                  <line x1="0" y1="8" x2="160" y2="8" class="track-flow-line" stroke="url(#cardGrad6)" />
+                </svg>
+                <div class="track-moving-bus" style="animation-duration: 3.5s;">
+                  <i class="fa-solid fa-bus"></i>
+                  <span class="bus-headlight-glow"></span>
+                </div>
+                <span class="track-duration-pill"><i class="fa-regular fa-clock"></i> 1h 00m</span>
+              </div>
+              <div class="route-node-circle dest" title="University Gate">
+                <span class="node-core"></span>
+                <span class="node-pulse"></span>
+              </div>
             </div>
+
             <div class="corridor-station-node" style="text-align: right;">
               <h4>Hathazari</h4>
               <span>University Gate</span>
@@ -1024,7 +1478,7 @@
               <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">Per Seat Fare</span>
               <span class="corridor-fare-amount">BDT 150</span>
             </div>
-            <button class="fleet-filter-btn" onclick="quickSelectRoute('Chattogram', 'Hathazari', 'Commuter')">
+            <button class="fleet-filter-btn" onclick="event.stopPropagation(); quickSelectRoute('Chattogram', 'Hathazari', 'Commuter')">
               Book Route <i class="fa-solid fa-arrow-right"></i>
             </button>
           </div>
