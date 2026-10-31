@@ -1165,17 +1165,17 @@ class ProvatiDB {
     const cleanKey = key.trim();
 
     try {
-      const pingUrl = `${cleanUrl}/rest/v1/?apikey=${encodeURIComponent(cleanKey)}`;
+      const pingUrl = `${cleanUrl}/rest/v1/buses?select=id&limit=1`;
       const res = await fetch(pingUrl, {
         headers: {
           'apikey': cleanKey,
           'Authorization': `Bearer ${cleanKey}`,
-          'Accept': 'application/openapi+json'
+          'Accept': 'application/json'
         }
       });
 
-      if (res.ok || res.status === 200 || res.status === 404) {
-        return { success: true, message: 'Successfully reached Supabase API endpoint!' };
+      if (res.ok || res.status === 200) {
+        return { success: true, message: 'Successfully reached live Supabase database!' };
       } else if (res.status === 401) {
         return { success: false, message: 'Authentication failed. Please verify your Supabase Anon Public Key.' };
       } else {
