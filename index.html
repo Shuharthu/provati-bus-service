@@ -1754,64 +1754,214 @@
 
       </div>
 
-      <!-- Tab 3: Super Admin Command Panel -->
+      <!-- Tab 3: Super Admin Command Panel (Individual Dedicated Command Suite) -->
       <div class="portal-panel-content" id="panel-portal-admin">
         
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
-          <div>
-            <h3 style="font-size: 1.2rem; font-weight: 800; color: #ffffff;">
-              <i class="fa-solid fa-user-shield" style="color: var(--contrast-coral);"></i> User Access Directory & Database Synchronization
-            </h3>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">Assign roles, manage live Supabase pipeline credentials, and review immutable audit logs.</span>
+        <!-- Super Admin Executive Hero Banner -->
+        <div class="super-admin-hero-banner">
+          <div class="super-hero-left">
+            <div class="super-crown-icon-wrap">
+              <i class="fa-solid fa-crown"></i>
+            </div>
+            <div class="super-hero-title-box">
+              <h3>
+                Super Administrator Command Suite 
+                <span class="role-badge super_admin" style="font-size: 0.72rem; padding: 2px 8px;">SUPER ADMIN</span>
+              </h3>
+              <p>
+                Sole executive governance of Administrator & Editor roles, master passenger order registry, and financial ledger settlements.
+              </p>
+            </div>
           </div>
           
-          <div style="display: flex; gap: 0.75rem;">
+          <div class="super-hero-right-actions">
+            <button class="super-provision-btn" onclick="openCreateStaffModal()">
+              <i class="fa-solid fa-user-plus"></i> Provision New Admin / Editor
+            </button>
             <button class="ticket-action-btn" onclick="openSupabaseSettingsModal()">
               <i class="fa-solid fa-database"></i> Supabase Setup
             </button>
-            <button class="ticket-action-btn" onclick="resetDatabaseDemo()" style="color: var(--contrast-coral); border-color: rgba(239, 68, 68, 0.4);">
-              <i class="fa-solid fa-rotate"></i> Reset Demo Data
-            </button>
           </div>
         </div>
 
-        <!-- Users Directory Table -->
-        <div class="data-table-container" style="margin-bottom: 2rem;">
-          <table class="modern-data-table">
-            <thead>
-              <tr>
-                <th>Profile Name</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Current Role</th>
-                <th>Set Access Level</th>
-              </tr>
-            </thead>
-            <tbody id="admin-users-tbody">
-              <!-- Rendered via app.js -->
-            </tbody>
-          </table>
+        <!-- Super Admin Sub-Navigation Pills -->
+        <div class="super-subnav-bar">
+          <button class="super-subnav-pill active" id="pill-super-roles" onclick="switchSuperSubTab('roles')">
+            <i class="fa-solid fa-users-gear"></i> Staff Role Setup & Directory
+          </button>
+          <button class="super-subnav-pill" id="pill-super-orders" onclick="switchSuperSubTab('orders')">
+            <i class="fa-solid fa-boxes-packing"></i> Master Orders & Bookings
+          </button>
+          <button class="super-subnav-pill" id="pill-super-audit" onclick="switchSuperSubTab('audit')">
+            <i class="fa-solid fa-list-check"></i> System Security & Audit Trail
+          </button>
+          <button class="super-subnav-pill" id="pill-super-sync" onclick="switchSuperSubTab('sync')">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Supabase Cloud Sync
+          </button>
         </div>
 
-        <!-- System Audit Trail -->
-        <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem; color: #ffffff;">
-          <i class="fa-solid fa-list-check"></i> System Event & Audit Logs
-        </h3>
-        <div class="data-table-container">
-          <table class="modern-data-table">
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Actor</th>
-                <th>Role</th>
-                <th>Action</th>
-                <th>Event Details</th>
-              </tr>
-            </thead>
-            <tbody id="admin-audit-tbody">
-              <!-- Rendered via app.js -->
-            </tbody>
-          </table>
+        <!-- Sub-Pane 1: Staff Role Governance & Setup -->
+        <div class="super-section-pane active" id="super-pane-roles">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+              <h4 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0;">
+                <i class="fa-solid fa-shield-halved" style="color: var(--accent-emerald);"></i> Setup Admin & Editor Roles (RBAC Authorization)
+              </h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">
+                Only the Super Administrator has authority to promote or assign Admin and Editor roles. Normal customer accounts cannot claim staff rights.
+              </p>
+            </div>
+            <button class="select-trip-btn" style="padding: 0.45rem 0.95rem; font-size: 0.8rem;" onclick="openCreateStaffModal()">
+              <i class="fa-solid fa-user-shield"></i> Add Staff Account
+            </button>
+          </div>
+
+          <div class="data-table-container" style="margin-bottom: 1.5rem;">
+            <table class="modern-data-table">
+              <thead>
+                <tr>
+                  <th>Profile Name</th>
+                  <th>Contact Phone</th>
+                  <th>Account Email</th>
+                  <th>Department</th>
+                  <th>Current Role</th>
+                  <th>Assign Access Role</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-tbody">
+                <!-- Rendered dynamically via app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sub-Pane 2: Master Orders & Bookings Registry (See the orders, all details) -->
+        <div class="super-section-pane" id="super-pane-orders">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h4 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0;">
+                <i class="fa-solid fa-receipt" style="color: var(--accent-cyan);"></i> All Passenger Orders & Booking Registry
+              </h4>
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">
+                Live master registry of all customer ticket purchases, 6-hour cash-at-counter holds, seat berths, and payments.
+              </p>
+            </div>
+
+            <!-- Filter Controls & Search -->
+            <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+              <div class="service-pills-row" style="margin: 0;">
+                <button class="service-pill-btn active" onclick="setSuperOrdersFilter('all', this)">All Orders</button>
+                <button class="service-pill-btn" onclick="setSuperOrdersFilter('confirmed', this)">Confirmed Paid</button>
+                <button class="service-pill-btn" onclick="setSuperOrdersFilter('pending_hold', this)">6H Counter Holds</button>
+                <button class="service-pill-btn" onclick="setSuperOrdersFilter('cancelled', this)">Cancelled</button>
+              </div>
+              <input type="text" id="super-orders-search" class="route-input" style="max-width: 240px; padding: 0.45rem 0.8rem; font-size: 0.8rem;" placeholder="Search PNR, Name, Phone..." oninput="handleSuperOrdersSearch(this.value)">
+            </div>
+          </div>
+
+          <!-- Orders Master Table -->
+          <div class="data-table-container">
+            <table class="modern-data-table">
+              <thead>
+                <tr>
+                  <th>PNR Code</th>
+                  <th>Passenger Info</th>
+                  <th>Route & Journey</th>
+                  <th>Coach & Seats</th>
+                  <th>Fare (BDT)</th>
+                  <th>Payment Method</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="super-orders-tbody">
+                <!-- Rendered dynamically via app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sub-Pane 3: System Security & Audit Trail -->
+        <div class="super-section-pane" id="super-pane-audit">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+            <h4 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0;">
+              <i class="fa-solid fa-list-check" style="color: var(--accent-emerald);"></i> System Event & Security Audit Trail
+            </h4>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">Immutable audit log of all role promotions, order cancellations, and schedule changes.</span>
+          </div>
+
+          <div class="data-table-container">
+            <table class="modern-data-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Actor</th>
+                  <th>Role</th>
+                  <th>Action</th>
+                  <th>Event Details</th>
+                </tr>
+              </thead>
+              <tbody id="admin-audit-tbody">
+                <!-- Rendered via app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sub-Pane 4: Supabase Cloud Sync Console -->
+        <div class="super-section-pane" id="super-pane-sync">
+          <div class="glass-panel" style="padding: 1.75rem; border-radius: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <h4 style="font-size: 1.2rem; font-weight: 800; color: #ffffff; margin: 0;">
+                  <i class="fa-solid fa-cloud-arrow-up" style="color: var(--accent-emerald);"></i> Supabase Cloud Database Pipeline
+                </h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+                  Project Ref: <strong style="color: var(--accent-cyan); font-family: monospace;">vclequhmjpzxhopxuebs</strong> (https://vclequhmjpzxhopxuebs.supabase.co)
+                </p>
+              </div>
+              <div style="display: flex; gap: 0.6rem;">
+                <button class="select-trip-btn" onclick="triggerManualSupabaseSync()">
+                  <i class="fa-solid fa-arrows-rotate"></i> Sync Cloud Database Now
+                </button>
+                <button class="ticket-action-btn" onclick="openSupabaseSettingsModal()">
+                  <i class="fa-solid fa-gear"></i> Settings
+                </button>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1rem;">
+              <div class="metric-card" style="padding: 1.25rem;">
+                <div class="metric-icon-wrap green"><i class="fa-solid fa-bus"></i></div>
+                <div class="metric-info">
+                  <h5>Cloud Fleet Buses</h5>
+                  <p id="cloud-metric-buses">4 Buses</p>
+                </div>
+              </div>
+              <div class="metric-card" style="padding: 1.25rem;">
+                <div class="metric-icon-wrap blue"><i class="fa-solid fa-route"></i></div>
+                <div class="metric-info">
+                  <h5>Cloud Schedules</h5>
+                  <p id="cloud-metric-schedules">9 Schedules</p>
+                </div>
+              </div>
+              <div class="metric-card" style="padding: 1.25rem;">
+                <div class="metric-icon-wrap amber"><i class="fa-solid fa-ticket"></i></div>
+                <div class="metric-info">
+                  <h5>Cloud Bookings</h5>
+                  <p id="cloud-metric-bookings">Live</p>
+                </div>
+              </div>
+              <div class="metric-card" style="padding: 1.25rem;">
+                <div class="metric-icon-wrap coral"><i class="fa-solid fa-shield"></i></div>
+                <div class="metric-info">
+                  <h5>Status</h5>
+                  <p style="color: var(--accent-emerald);">ONLINE</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -2224,140 +2374,265 @@
   </div>
 
   <!-- ============================================================================
-       MODAL 4: UNIFIED PORTAL LOGIN & RBAC ROLE SWITCHER (ALL-IN-ONE)
+       MODAL 4: UNIFIED PORTAL LOGIN & PASSENGER SIGN UP (ALL-IN-ONE)
        ============================================================================ -->
   <div class="modal-overlay" id="role-switcher-modal">
     <div class="auth-modal-box">
       
       <div class="payment-modal-header">
-        <h3><i class="fa-solid fa-id-card-clip" style="color: var(--accent-emerald);"></i> Universal Portal Login & Role Switcher</h3>
+        <h3><i class="fa-solid fa-id-card-clip" style="color: var(--accent-emerald);"></i> Universal Portal Access</h3>
         <button class="close-modal-x" onclick="closeRoleSwitcherModal()">&times;</button>
+      </div>
+
+      <!-- Auth Switcher Header Tabs -->
+      <div class="auth-tabs-header">
+        <button type="button" class="auth-tab-btn active" id="auth-tab-login" onclick="switchAuthTab('login')">
+          <i class="fa-solid fa-right-to-bracket"></i> Sign In to Account
+        </button>
+        <button type="button" class="auth-tab-btn" id="auth-tab-signup" onclick="switchAuthTab('signup')">
+          <i class="fa-solid fa-user-plus"></i> Passenger Sign Up
+        </button>
       </div>
 
       <div class="auth-modal-body">
         
-        <!-- Email Input Section -->
-        <div class="auth-input-group">
-          <label class="auth-input-label" for="auth-email-input">
-            <span><i class="fa-solid fa-envelope"></i> Enter Your Account Email</span>
-            <span style="font-size: 0.68rem; color: #94a3b8; font-weight: normal;">Live Role Detection Active</span>
-          </label>
-          <div class="auth-input-wrapper">
-            <i class="fa-solid fa-at auth-input-icon"></i>
-            <input 
-              type="email" 
-              id="auth-email-input" 
-              class="auth-email-field" 
-              placeholder="e.g. shuharthu@example.com or admin@provati.com.bd" 
-              autocomplete="email"
-              oninput="handleAuthEmailInput()"
-            />
-          </div>
-
-          <!-- Quick Test Demo Chips -->
-          <div class="auth-quick-chips-row">
-            <span class="auth-chip-label">Quick Test:</span>
-            <button type="button" class="auth-chip-btn" onclick="quickFillAuth('admin@provati.com.bd', 'super_admin')">
-              <i class="fa-solid fa-crown" style="color: #f87171;"></i> Super Admin
-            </button>
-            <button type="button" class="auth-chip-btn" onclick="quickFillAuth('admin.ops@provati.com.bd', 'admin')">
-              <i class="fa-solid fa-user-shield" style="color: #60a5fa;"></i> Fleet Admin
-            </button>
-            <button type="button" class="auth-chip-btn" onclick="quickFillAuth('editor@provati.com.bd', 'editor')">
-              <i class="fa-solid fa-clipboard-check" style="color: #fbbf24;"></i> Dispatcher
-            </button>
-            <button type="button" class="auth-chip-btn" onclick="quickFillAuth('shuharthu@example.com', 'user')">
-              <i class="fa-solid fa-user" style="color: #34d399;"></i> Passenger
-            </button>
-          </div>
-        </div>
-
-        <!-- Realtime Role Detection & Greyed-out Warning Banner -->
-        <div id="auth-email-feedback" class="auth-feedback-box default">
-          <i class="fa-solid fa-circle-info"></i>
-          <span>Type an email above or click a demo account. Normal passenger emails automatically grey out staff & admin roles.</span>
-        </div>
-
-        <!-- 4 Role Selection Cards -->
-        <div class="auth-roles-list">
+        <!-- PANE 1: SIGN IN (STAFF & REGISTERED PASSENGERS) -->
+        <div class="auth-pane active" id="auth-pane-login">
           
-          <!-- 1. Customer / Passenger -->
-          <div class="auth-role-card selected" id="role-card-user" onclick="selectRoleOption('user')">
-            <div class="role-card-left">
-              <div class="role-card-icon-wrap user">
-                <i class="fa-solid fa-couch"></i>
-              </div>
-              <div class="role-card-details">
-                <h5>Passenger / Customer <span class="role-badge user">USER</span></h5>
-                <p>Search schedules, choose sleeper berths, bKash/Nagad payments, PNR digital passes.</p>
-              </div>
+          <!-- Email Input Section -->
+          <div class="auth-input-group">
+            <label class="auth-input-label" for="auth-email-input">
+              <span><i class="fa-solid fa-envelope"></i> Account Email Address</span>
+              <span style="font-size: 0.68rem; color: #94a3b8; font-weight: normal;">Live Role Detection Active</span>
+            </label>
+            <div class="auth-input-wrapper">
+              <i class="fa-solid fa-at auth-input-icon"></i>
+              <input 
+                type="email" 
+                id="auth-email-input" 
+                class="auth-email-field" 
+                placeholder="e.g. shuharthu@example.com or admin@provati.com.bd" 
+                autocomplete="email"
+                oninput="handleAuthEmailInput()"
+              />
             </div>
-            <div class="role-card-badge-col">
-              <i class="fa-solid fa-circle-check role-active-check"></i>
+
+            <!-- Quick Test Demo Chips -->
+            <div class="auth-quick-chips-row">
+              <span class="auth-chip-label">Quick Test:</span>
+              <button type="button" class="auth-chip-btn" onclick="quickFillAuth('admin@provati.com.bd', 'super_admin')">
+                <i class="fa-solid fa-crown" style="color: #f87171;"></i> Super Admin
+              </button>
+              <button type="button" class="auth-chip-btn" onclick="quickFillAuth('admin.ops@provati.com.bd', 'admin')">
+                <i class="fa-solid fa-user-shield" style="color: #60a5fa;"></i> Fleet Admin
+              </button>
+              <button type="button" class="auth-chip-btn" onclick="quickFillAuth('editor@provati.com.bd', 'editor')">
+                <i class="fa-solid fa-clipboard-check" style="color: #fbbf24;"></i> Dispatcher
+              </button>
+              <button type="button" class="auth-chip-btn" onclick="quickFillAuth('shuharthu@example.com', 'user')">
+                <i class="fa-solid fa-user" style="color: #34d399;"></i> Passenger
+              </button>
             </div>
           </div>
 
-          <!-- 2. Counter Dispatcher (Editor) -->
-          <div class="auth-role-card" id="role-card-editor" onclick="selectRoleOption('editor')">
-            <div class="role-card-left">
-              <div class="role-card-icon-wrap editor">
-                <i class="fa-solid fa-clipboard-list"></i>
-              </div>
-              <div class="role-card-details">
-                <h5>Counter Dispatcher <span class="role-badge editor">EDITOR</span></h5>
-                <p>Coach delay updates, passenger manifests, 6H cash-at-counter hold issuance.</p>
-              </div>
-            </div>
-            <div class="role-card-badge-col">
-              <span class="role-lock-tag" id="lock-tag-editor"><i class="fa-solid fa-lock"></i> Staff Access Required</span>
-              <i class="fa-solid fa-circle-check role-active-check"></i>
-            </div>
-          </div>
-
-          <!-- 3. Fleet Operations Admin -->
-          <div class="auth-role-card" id="role-card-admin" onclick="selectRoleOption('admin')">
-            <div class="role-card-left">
-              <div class="role-card-icon-wrap admin">
-                <i class="fa-solid fa-user-shield"></i>
-              </div>
-              <div class="role-card-details">
-                <h5>Fleet Operations Admin <span class="role-badge admin">ADMIN</span></h5>
-                <p>Manage trip schedules, adjust base fares, monitor financial analytics & revenue.</p>
-              </div>
-            </div>
-            <div class="role-card-badge-col">
-              <span class="role-lock-tag" id="lock-tag-admin"><i class="fa-solid fa-lock"></i> Admin Role Required</span>
-              <i class="fa-solid fa-circle-check role-active-check"></i>
+          <!-- Password / Security PIN -->
+          <div class="auth-input-group">
+            <label class="auth-input-label" for="auth-password-input">
+              <span><i class="fa-solid fa-key"></i> Password / Security PIN</span>
+              <span style="font-size: 0.68rem; color: #64748b; font-weight: normal;">Demo: Any PIN or password</span>
+            </label>
+            <div class="auth-input-wrapper">
+              <i class="fa-solid fa-lock auth-input-icon"></i>
+              <input 
+                type="password" 
+                id="auth-password-input" 
+                class="auth-email-field" 
+                placeholder="••••••••" 
+                autocomplete="current-password"
+              />
             </div>
           </div>
 
-          <!-- 4. Super Admin Command -->
-          <div class="auth-role-card" id="role-card-super_admin" onclick="selectRoleOption('super_admin')">
-            <div class="role-card-left">
-              <div class="role-card-icon-wrap super">
-                <i class="fa-solid fa-crown"></i>
-              </div>
-              <div class="role-card-details">
-                <h5>Super Admin Command <span class="role-badge super_admin">SUPER ADMIN</span></h5>
-                <p>Authorize Admin & Editor roles, immutable audit logs, Supabase database synchronization.</p>
-              </div>
-            </div>
-            <div class="role-card-badge-col">
-              <span class="role-lock-tag" id="lock-tag-super_admin"><i class="fa-solid fa-lock"></i> Super Admin Only</span>
-              <i class="fa-solid fa-circle-check role-active-check"></i>
-            </div>
+          <!-- Realtime Role Detection & Greyed-out Warning Banner -->
+          <div id="auth-email-feedback" class="auth-feedback-box default">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>Type an email above or click a demo account. Normal passenger emails automatically grey out staff & admin roles.</span>
           </div>
+
+          <!-- 4 Role Selection Cards -->
+          <div class="auth-roles-list">
+            
+            <!-- 1. Customer / Passenger -->
+            <div class="auth-role-card selected" id="role-card-user" onclick="selectRoleOption('user')">
+              <div class="role-card-left">
+                <div class="role-card-icon-wrap user">
+                  <i class="fa-solid fa-couch"></i>
+                </div>
+                <div class="role-card-details">
+                  <h5>Passenger / Customer <span class="role-badge user">USER</span></h5>
+                  <p>Search schedules, choose sleeper berths, bKash/Nagad payments, PNR digital passes.</p>
+                </div>
+              </div>
+              <div class="role-card-badge-col">
+                <i class="fa-solid fa-circle-check role-active-check"></i>
+              </div>
+            </div>
+
+            <!-- 2. Counter Dispatcher (Editor) -->
+            <div class="auth-role-card" id="role-card-editor" onclick="selectRoleOption('editor')">
+              <div class="role-card-left">
+                <div class="role-card-icon-wrap editor">
+                  <i class="fa-solid fa-clipboard-list"></i>
+                </div>
+                <div class="role-card-details">
+                  <h5>Counter Dispatcher <span class="role-badge editor">EDITOR</span></h5>
+                  <p>Coach delay updates, passenger manifests, 6H cash-at-counter hold issuance.</p>
+                </div>
+              </div>
+              <div class="role-card-badge-col">
+                <span class="role-lock-tag" id="lock-tag-editor"><i class="fa-solid fa-lock"></i> Staff Access Required</span>
+                <i class="fa-solid fa-circle-check role-active-check"></i>
+              </div>
+            </div>
+
+            <!-- 3. Fleet Operations Admin -->
+            <div class="auth-role-card" id="role-card-admin" onclick="selectRoleOption('admin')">
+              <div class="role-card-left">
+                <div class="role-card-icon-wrap admin">
+                  <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <div class="role-card-details">
+                  <h5>Fleet Operations Admin <span class="role-badge admin">ADMIN</span></h5>
+                  <p>Manage trip schedules, adjust base fares, monitor financial analytics & revenue.</p>
+                </div>
+              </div>
+              <div class="role-card-badge-col">
+                <span class="role-lock-tag" id="lock-tag-admin"><i class="fa-solid fa-lock"></i> Admin Role Required</span>
+                <i class="fa-solid fa-circle-check role-active-check"></i>
+              </div>
+            </div>
+
+            <!-- 4. Super Admin Command -->
+            <div class="auth-role-card" id="role-card-super_admin" onclick="selectRoleOption('super_admin')">
+              <div class="role-card-left">
+                <div class="role-card-icon-wrap super">
+                  <i class="fa-solid fa-crown"></i>
+                </div>
+                <div class="role-card-details">
+                  <h5>Super Admin Command <span class="role-badge super_admin">SUPER ADMIN</span></h5>
+                  <p>Authorize Admin & Editor roles, immutable audit logs, Supabase database synchronization.</p>
+                </div>
+              </div>
+              <div class="role-card-badge-col">
+                <span class="role-lock-tag" id="lock-tag-super_admin"><i class="fa-solid fa-lock"></i> Super Admin Only</span>
+                <i class="fa-solid fa-circle-check role-active-check"></i>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Submit Button -->
+          <button type="button" class="auth-login-submit-btn" id="auth-submit-btn" onclick="submitAuthLogin()">
+            <i class="fa-solid fa-right-to-bracket"></i> Continue to Workspace
+          </button>
+
+          <div style="text-align: center; padding-top: 0.25rem;">
+            <span style="font-size: 0.76rem; color: #94a3b8;">New passenger customer? </span>
+            <button type="button" style="background: none; border: none; color: var(--accent-emerald); font-weight: 700; font-size: 0.76rem; cursor: pointer; text-decoration: underline;" onclick="switchAuthTab('signup')">
+              Sign up as Passenger first
+            </button>
+          </div>
+
+          <p style="font-size: 0.7rem; color: #64748b; text-align: center; margin: 0;">
+            <i class="fa-solid fa-shield-halved"></i> Role enforcement policy: Only Super Admin can promote accounts to Admin or Editor.
+          </p>
 
         </div>
 
-        <!-- Submit Button -->
-        <button type="button" class="auth-login-submit-btn" id="auth-submit-btn" onclick="submitAuthLogin()">
-          <i class="fa-solid fa-right-to-bracket"></i> Continue to Workspace
-        </button>
+        <!-- PANE 2: PASSENGER SIGN UP (NEW PASSENGERS MUST SIGN UP FIRST) -->
+        <div class="auth-pane" id="auth-pane-signup">
+          
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 0.75rem 0.9rem; font-size: 0.78rem; color: #cbd5e1; line-height: 1.45;">
+            <i class="fa-solid fa-user-plus" style="color: var(--accent-emerald); margin-right: 0.35rem;"></i>
+            <strong>Passenger Self-Registration:</strong> Customers must create an account first before logging in to reserve sleeper berths and book tickets. Staff roles (Admin/Editor) are provisioned exclusively by Super Admin.
+          </div>
 
-        <p style="font-size: 0.72rem; color: #64748b; text-align: center; margin: 0;">
-          <i class="fa-solid fa-shield-halved"></i> Role enforcement policy: Only Super Admin can promote accounts to Admin or Editor.
-        </p>
+          <div class="signup-input-grid">
+            
+            <!-- Full Name -->
+            <div class="auth-input-group signup-full-col">
+              <label class="auth-input-label" for="signup-name-input">
+                <span><i class="fa-solid fa-user"></i> Passenger Full Name *</span>
+              </label>
+              <div class="auth-input-wrapper">
+                <i class="fa-solid fa-id-badge auth-input-icon"></i>
+                <input type="text" id="signup-name-input" class="auth-email-field" placeholder="e.g. Mahbubul Alam" required autocomplete="name" />
+              </div>
+            </div>
+
+            <!-- Email Address -->
+            <div class="auth-input-group">
+              <label class="auth-input-label" for="signup-email-input">
+                <span><i class="fa-solid fa-envelope"></i> Email Address *</span>
+              </label>
+              <div class="auth-input-wrapper">
+                <i class="fa-solid fa-at auth-input-icon"></i>
+                <input type="email" id="signup-email-input" class="auth-email-field" placeholder="e.g. mahbub@example.com" required autocomplete="email" />
+              </div>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="auth-input-group">
+              <label class="auth-input-label" for="signup-phone-input">
+                <span><i class="fa-solid fa-phone"></i> Mobile Number *</span>
+              </label>
+              <div class="auth-input-wrapper">
+                <i class="fa-solid fa-mobile-screen-button auth-input-icon"></i>
+                <input type="tel" id="signup-phone-input" class="auth-email-field" placeholder="e.g. 01712-345678" required autocomplete="tel" />
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="auth-input-group">
+              <label class="auth-input-label" for="signup-password-input">
+                <span><i class="fa-solid fa-lock"></i> Password *</span>
+              </label>
+              <div class="auth-input-wrapper">
+                <i class="fa-solid fa-key auth-input-icon"></i>
+                <input type="password" id="signup-password-input" class="auth-email-field" placeholder="Min 6 characters" required autocomplete="new-password" />
+              </div>
+            </div>
+
+            <!-- City / Home District -->
+            <div class="auth-input-group">
+              <label class="auth-input-label" for="signup-city-input">
+                <span><i class="fa-solid fa-location-dot"></i> Home District</span>
+              </label>
+              <select id="signup-city-input" class="route-input" style="height: 44px; padding-left: 0.85rem; font-size: 0.85rem;">
+                <option value="Dhaka">Dhaka (ঢাকা)</option>
+                <option value="Chattogram">Chattogram (চট্টগ্রাম)</option>
+                <option value="Cox's Bazar">Cox's Bazar (কক্সবাজার)</option>
+                <option value="Sylhet">Sylhet (সিলেট)</option>
+                <option value="Cumilla">Cumilla (কুমিল্লা)</option>
+                <option value="Hathazari">Hathazari (হাটহাজারী)</option>
+              </select>
+            </div>
+
+          </div>
+
+          <!-- Submit Button -->
+          <button type="button" class="auth-login-submit-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #042f2e;" onclick="submitPassengerSignUp()">
+            <i class="fa-solid fa-user-check"></i> Register Passenger Account & Log In
+          </button>
+
+          <div style="text-align: center; padding-top: 0.25rem;">
+            <span style="font-size: 0.76rem; color: #94a3b8;">Already have an account? </span>
+            <button type="button" style="background: none; border: none; color: var(--accent-cyan); font-weight: 700; font-size: 0.76rem; cursor: pointer; text-decoration: underline;" onclick="switchAuthTab('login')">
+              Sign in to your account
+            </button>
+          </div>
+
+        </div>
 
       </div>
     </div>
@@ -2467,6 +2742,81 @@
             <i class="fa-regular fa-copy"></i> Copy schema.sql
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       MODAL 7: PROVISION NEW STAFF ACCOUNT (SUPER ADMIN EXCLUSIVE)
+       ============================================================================ -->
+  <div class="modal-overlay" id="create-staff-modal">
+    <div class="payment-modal-box" style="max-width: 540px;">
+      <div class="payment-modal-header">
+        <h3><i class="fa-solid fa-user-shield" style="color: var(--accent-emerald);"></i> Provision Staff Member</h3>
+        <button class="close-modal-x" onclick="closeCreateStaffModal()">&times;</button>
+      </div>
+      <div style="padding: 1.75rem; display: flex; flex-direction: column; gap: 1rem;">
+        
+        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 10px; padding: 0.75rem 0.9rem; font-size: 0.78rem; color: #fde68a; line-height: 1.45;">
+          <i class="fa-solid fa-crown" style="color: #f59e0b; margin-right: 0.35rem;"></i>
+          <strong>Super Admin Authorization:</strong> Provision official staff accounts with designated roles (Fleet Admin or Counter Dispatcher).
+        </div>
+
+        <!-- Full Name -->
+        <div class="filter-form-group">
+          <label class="filter-label">Staff Full Name *</label>
+          <input type="text" id="staff-name-input" class="route-input" style="padding-left: 1rem;" placeholder="e.g. Tanvir Ahmed" required>
+        </div>
+
+        <!-- Official Email -->
+        <div class="filter-form-group">
+          <label class="filter-label">Official Work Email *</label>
+          <input type="email" id="staff-email-input" class="route-input" style="padding-left: 1rem;" placeholder="e.g. tanvir@provati.com.bd" required>
+        </div>
+
+        <!-- Contact Phone -->
+        <div class="filter-form-group">
+          <label class="filter-label">Contact Mobile *</label>
+          <input type="tel" id="staff-phone-input" class="route-input" style="padding-left: 1rem;" placeholder="e.g. +880 1711 223344" required>
+        </div>
+
+        <!-- Department -->
+        <div class="filter-form-group">
+          <label class="filter-label">Assigned Department / Hub *</label>
+          <input type="text" id="staff-dept-input" class="route-input" style="padding-left: 1rem;" placeholder="e.g. Fleet Operations & Fares / Sayedabad Counter">
+        </div>
+
+        <!-- Role Assignment Selection -->
+        <div class="filter-form-group">
+          <label class="filter-label">Designated Access Level (Role) *</label>
+          <select id="staff-role-select" class="route-input" style="padding-left: 1rem; height: 46px;">
+            <option value="admin">Fleet Operations Admin (Full Analytics, Fares & Fleet Control)</option>
+            <option value="editor" selected>Counter Dispatcher Desk (Manifests, Delays & 6H Holds)</option>
+            <option value="user">Passenger / Customer Access</option>
+          </select>
+        </div>
+
+        <!-- Submit Button -->
+        <button class="proceed-payment-cta" style="margin-top: 0.5rem;" onclick="submitCreateStaff()">
+          <i class="fa-solid fa-user-check"></i> Authorize & Save Staff Profile
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       MODAL 8: MASTER ORDER DOSSIER & COMPLETE DETAILS (SUPER ADMIN EXECUTIVE)
+       ============================================================================ -->
+  <div class="modal-overlay" id="super-order-details-modal">
+    <div class="order-dossier-box">
+      <div class="payment-modal-header">
+        <h3 id="dossier-modal-title"><i class="fa-solid fa-receipt" style="color: var(--accent-emerald);"></i> Master Booking Dossier</h3>
+        <button class="close-modal-x" onclick="closeOrderDetailsModal()">&times;</button>
+      </div>
+      
+      <div style="padding: 1.75rem;" id="dossier-modal-body">
+        <!-- Dynamically injected via app.js -->
       </div>
     </div>
   </div>

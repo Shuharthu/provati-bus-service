@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
     currentDeck: 'upper',
     activePayTab: 'mfs',
     activeMfsBrand: 'bKash',
+    superOrdersFilter: 'all',
+    superOrdersSearch: '',
+    activeSuperSubTab: 'roles',
     charts: {
       occupancy: null,
       revenue: null
@@ -123,22 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try { setupEventListeners(); } catch (e) { console.error('events err', e); }
     try { setupDBListeners(); } catch (e) { console.error('db err', e); }
     try { updateRadarTelemetryDock('dhaka-coxsbazar'); } catch (e) { console.error('radar err', e); }
-
-    // Pre-load primary showcase trip matching the monitor reference mockup
-    setTimeout(() => {
-      try {
-        const allScheds = window.provatiDB.getSchedules();
-        const target = (allScheds && allScheds.length > 0) ? (allScheds.find(s => s.id === 'sched-101') || allScheds[0]) : null;
-        if (target) {
-          openSeatSelectionDrawer(target.id);
-          state.selectedSeats = ['U7', 'U8'];
-          renderSeatMap();
-          updateJourneySummary();
-        }
-      } catch (e) {
-        console.error('Showcase drawer init err', e);
-      }
-    }, 200);
+    try { renderSuperAdminOrdersTable(); } catch (e) { console.error('orders err', e); }
   }
 
   // Set today's date in date pickers
@@ -210,10 +198,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (tabName === 'analytics') {
       renderAdminWorkspace();
+      requestAnimationFrame(() => {
+        renderAdminCharts();
+      });
     } else if (tabName === 'editor') {
       renderEditorWorkspace();
     } else if (tabName === 'admin') {
-      renderAdminWorkspace();
+      switchSuperSubTab(state.activeSuperSubTab || 'roles');
+      renderAdminUsersTable();
+      renderSuperAdminOrdersTable();
+      renderAdminAuditTable();
     }
   };
 
@@ -255,6 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('role-switcher-modal');
     if (!modal) return;
     modal.classList.add('open');
+    switchAuthTab('login');
 
     // Pre-fill with current user's email
     const emailInput = document.getElementById('auth-email-input');
@@ -271,6 +266,26 @@ document.addEventListener('DOMContentLoaded', () => {
   window.closeRoleSwitcherModal = function() {
     const modal = document.getElementById('role-switcher-modal');
     if (modal) modal.classList.remove('open');
+  };
+
+  window.switchAuthTab = function(tab) {
+    const loginTabBtn = document.getElementById('auth-tab-login');
+    const signupTabBtn = document.getElementById('auth-tab-signup');
+    const loginPane = document.getElementById('auth-pane-login');
+    const signupPane = document.getElementById('auth-pane-signup');
+
+    if (tab === 'signup') {
+      if (loginTabBtn) loginTabBtn.classList.remove('active');
+      if (signupTabBtn) signupTabBtn.classList.add('active');
+      if (loginPane) loginPane.classList.remove('active');
+      if (signupPane) signupPane.classList.add('active');
+    } else {
+      if (loginTabBtn) loginTabBtn.classList.add('active');
+      if (signupTabBtn) signupTabBtn.classList.remove('active');
+      if (loginPane) loginPane.classList.add('active');
+      if (signupPane) signupPane.classList.remove('active');
+      handleAuthEmailInput();
+    }
   };
 
   /**
@@ -310,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!email) {
       if (feedback) {
         feedback.className = 'auth-feedback-box default';
-        feedback.innerHTML = `<i class="fa-solid fa-circle-info"></i> <span>Type an email above or click a demo account. Normal passenger emails automatically grey out staff & admin roles.</span>`;
+        feedback.innerHTML = `<i class="fa-solid fa-circle-info"></i> <span>Type your account email above. Normal passenger emails automatically grey out staff & admin roles.</span>`;
       }
       setCardState(userCard, 'lock-tag-user', true);
       setCardState(editorCard, 'lock-tag-editor', false, 'Authorized Editor Required');
@@ -321,13 +336,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 2. Check profile authority
-    const authorizedRole = profile ? profile.role : 'user';
+    const authorizedRole = profile ? profile.role : null;
 
     if (authorizedRole === 'super_admin' || email === 'admin@provati.com.bd') {
       // Super Admin: All 4 roles unlocked
       if (feedback) {
         feedback.className = 'auth-feedback-box super';
-        feedback.innerHTML = `<i class="fa-solid fa-crown"></i> <span><strong>Super Administrator Verified!</strong> All workspace roles and permission settings unlocked.</span>`;
+        feedback.innerHTML = `<i class="fa-solid fa-crown"></i> <span><strong>Super Administrator Verified!</strong> All workspace roles, staff setup, and master order registry unlocked.</span>`;
       }
       setCardState(userCard, 'lock-tag-user', true);
       setCardState(editorCard, 'lock-tag-editor', true);
@@ -338,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Fleet Admin: Admin, Editor, User unlocked; Super Admin greyed out
       if (feedback) {
         feedback.className = 'auth-feedback-box admin';
-        feedback.innerHTML = `<i class="fa-solid fa-user-shield"></i> <span><strong>Fleet Administrator Verified!</strong> Admin, Dispatcher desk, and Passenger roles unlocked.</span>`;
+        feedback.innerHTML = `<i class="fa-solid fa-user-shield"></i> <span><strong>Fleet Administrator Verified!</strong> Admin, Dispatcher desk, and Passenger roles unlocked. Super Admin role locked.</span>`;
       }
       setCardState(userCard, 'lock-tag-user', true);
       setCardState(editorCard, 'lock-tag-editor', true);
@@ -356,17 +371,29 @@ document.addEventListener('DOMContentLoaded', () => {
       setCardState(adminCard, 'lock-tag-admin', false, 'Admin Authorization Required');
       setCardState(superCard, 'lock-tag-super_admin', false, 'Super Admin Clearance Required');
       selectRoleOption(state.selectedAuthRole === 'super_admin' || state.selectedAuthRole === 'admin' ? 'editor' : (state.selectedAuthRole || 'editor'));
-    } else {
-      // Normal User (Customer):
-      // "normal user er jonno, email box e email type korar por automatic r admin/superadmin/editor er option gula grey hoye jabe."
+    } else if (profile && profile.role === 'user') {
+      // Registered Passenger (Customer):
+      // Greys out admin/superadmin/editor for normal users automatically!
       if (feedback) {
         feedback.className = 'auth-feedback-box user';
-        feedback.innerHTML = `<i class="fa-solid fa-user-lock"></i> <span><strong>Customer (Passenger) Account.</strong> Staff and Admin roles are greyed out. Only Super Admin can authorize Admin/Editor access.</span>`;
+        feedback.innerHTML = `<i class="fa-solid fa-user-check"></i> <span><strong>Registered Passenger Account (${profile.full_name}).</strong> Staff & Admin roles are greyed out (Super Admin authorization required). Ready to log in as Passenger.</span>`;
       }
       setCardState(userCard, 'lock-tag-user', true);
-      setCardState(editorCard, 'lock-tag-editor', false, 'Greyed out (Normal User)');
-      setCardState(adminCard, 'lock-tag-admin', false, 'Greyed out (Normal User)');
-      setCardState(superCard, 'lock-tag-super_admin', false, 'Greyed out (Normal User)');
+      setCardState(editorCard, 'lock-tag-editor', false, 'Greyed out (Super Admin Setup Required)');
+      setCardState(adminCard, 'lock-tag-admin', false, 'Greyed out (Super Admin Setup Required)');
+      setCardState(superCard, 'lock-tag-super_admin', false, 'Greyed out (Super Admin Setup Required)');
+      selectRoleOption('user');
+    } else {
+      // Unregistered Email:
+      // "except for user, because user has to sign up first by himself before login. If the mail id doesn't match the super admin, admin, editor's profile then these options should turn to grey"
+      if (feedback) {
+        feedback.className = 'auth-feedback-box user';
+        feedback.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> <span><strong>Unregistered Email Address!</strong> Normal users must sign up first before login. Staff roles are greyed out. <button type="button" onclick="switchAuthTab('signup')" style="background:none;border:none;color:var(--accent-emerald);font-weight:700;cursor:pointer;text-decoration:underline;">Click here to sign up as Passenger</button></span>`;
+      }
+      setCardState(userCard, 'lock-tag-user', true);
+      setCardState(editorCard, 'lock-tag-editor', false, 'Greyed out (Unregistered)');
+      setCardState(adminCard, 'lock-tag-admin', false, 'Greyed out (Unregistered)');
+      setCardState(superCard, 'lock-tag-super_admin', false, 'Greyed out (Unregistered)');
       selectRoleOption('user');
     }
   };
@@ -397,6 +424,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  window.submitPassengerSignUp = function() {
+    const nameInput = document.getElementById('signup-name-input');
+    const emailInput = document.getElementById('signup-email-input');
+    const phoneInput = document.getElementById('signup-phone-input');
+    const passwordInput = document.getElementById('signup-password-input');
+    const cityInput = document.getElementById('signup-city-input');
+
+    const name = nameInput ? nameInput.value.trim() : '';
+    const email = emailInput ? emailInput.value.trim() : '';
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+    const password = passwordInput ? passwordInput.value.trim() : '';
+    const city = cityInput ? cityInput.value : 'Dhaka';
+
+    if (!name || !email || !phone) {
+      showToast('Please fill in your Full Name, Email, and Phone number.');
+      return;
+    }
+
+    try {
+      const newPassenger = window.provatiDB.registerPassenger({
+        full_name: name,
+        email: email,
+        phone: phone,
+        city: city,
+        password: password
+      });
+
+      closeRoleSwitcherModal();
+      updateActiveUserUI();
+      switchView('user');
+      showToast(`Welcome, ${newPassenger.full_name}! Your passenger account has been created.`);
+    } catch (e) {
+      showToast(e.message || 'Error creating passenger account.');
+    }
+  };
+
   window.submitAuthLogin = function() {
     const emailInput = document.getElementById('auth-email-input');
     const email = emailInput ? emailInput.value.trim() : '';
@@ -407,11 +470,24 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const cleanEmail = email.toLowerCase();
+    const profile = window.provatiDB.findProfileByEmail(cleanEmail);
+
+    if (!profile) {
+      // User has not signed up first!
+      showToast('Account not found! Passengers must sign up first before logging in.');
+      switchAuthTab('signup');
+      const signupEmail = document.getElementById('signup-email-input');
+      if (signupEmail) signupEmail.value = email;
+      return;
+    }
+
     try {
       const user = window.provatiDB.loginWithEmail(email, state.selectedAuthRole);
       closeRoleSwitcherModal();
       updateActiveUserUI();
       renderAdminUsersTable();
+      renderSuperAdminOrdersTable();
       switchView(user.role);
       showToast(`Welcome, ${user.full_name}! Active role: ${user.role.replace('_', ' ').toUpperCase()}`);
     } catch (e) {
@@ -1032,8 +1108,8 @@ document.addEventListener('DOMContentLoaded', () => {
       container.innerHTML = schedules.map(s => {
         const depDate = new Date(s.departure_time);
         const arrDate = new Date(s.arrival_time);
-        const formatTime = (d) => isNaN(d) ? '08:30 PM' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const formatDate = (d) => isNaN(d) ? 'Today' : d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        const formatTime = (d) => (!d || isNaN(d.getTime())) ? '08:30 PM' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const formatDate = (d) => (!d || isNaN(d.getTime())) ? 'Today' : d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 
         const isSelected = state.selectedSchedule && state.selectedSchedule.id === s.id;
         const availableSeats = s.available_seats !== undefined ? s.available_seats : 24;
@@ -1842,6 +1918,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ============================================================================
+  // SUPER ADMIN EXECUTIVE CONTROLLERS (ROLES, MASTER ORDERS, DOSSIER, PROVISIONING)
+  // ============================================================================
+  window.switchSuperSubTab = function(tabKey) {
+    state.activeSuperSubTab = tabKey;
+    const pills = ['roles', 'orders', 'audit', 'sync'];
+    pills.forEach(k => {
+      const pill = document.getElementById(`pill-super-${k}`);
+      const pane = document.getElementById(`super-pane-${k}`);
+      if (k === tabKey) {
+        pill?.classList.add('active');
+        pane?.classList.add('active');
+      } else {
+        pill?.classList.remove('active');
+        pane?.classList.remove('active');
+      }
+    });
+
+    if (tabKey === 'roles') renderAdminUsersTable();
+    else if (tabKey === 'orders') renderSuperAdminOrdersTable();
+    else if (tabKey === 'audit') renderAdminAuditTable();
+    else if (tabKey === 'sync') updateCloudPipelineStats();
+  };
+
+  function updateCloudPipelineStats() {
+    const buses = window.provatiDB.getBuses();
+    const schedules = window.provatiDB.getSchedules();
+    const bookings = window.provatiDB.getBookings();
+    const profiles = window.provatiDB.getAllProfiles();
+
+    const busEl = document.getElementById('cloud-metric-buses');
+    const schedEl = document.getElementById('cloud-metric-schedules');
+    const bookEl = document.getElementById('cloud-metric-bookings');
+    const profEl = document.getElementById('cloud-metric-profiles');
+
+    if (busEl) busEl.textContent = `${buses.length} Buses`;
+    if (schedEl) schedEl.textContent = `${schedules.length} Schedules`;
+    if (bookEl) bookEl.textContent = `${bookings.length} Bookings`;
+    if (profEl) profEl.textContent = `${profiles.length} Profiles`;
+  }
+
   function renderAdminUsersTable() {
     const tbody = document.getElementById('admin-users-tbody');
     if (!tbody) return;
@@ -1850,29 +1967,74 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeUser = window.provatiDB.getCurrentUser();
     const isSuperAdmin = activeUser && activeUser.role === 'super_admin';
 
-    tbody.innerHTML = profiles.map(p => `
-      <tr>
-        <td><strong>${p.full_name}</strong></td>
-        <td>${p.phone || 'N/A'}</td>
-        <td style="font-family: monospace; color: var(--light-ice-blue);">${p.email}</td>
-        <td><span class="role-badge ${p.role}">${(p.role || 'user').replace('_', ' ').toUpperCase()}</span></td>
-        <td>
-          ${isSuperAdmin ? `
-            <select class="rbac-role-select" onchange="changeUserRole('${p.id}', this.value)">
-              <option value="user" ${p.role === 'user' ? 'selected' : ''}>Passenger (Customer)</option>
-              <option value="editor" ${p.role === 'editor' ? 'selected' : ''}>Counter Dispatcher (Editor)</option>
-              <option value="admin" ${p.role === 'admin' ? 'selected' : ''}>Fleet Operations Admin</option>
-              <option value="super_admin" ${p.role === 'super_admin' ? 'selected' : ''}>Super Admin Command</option>
-            </select>
-          ` : `
-            <div style="display: flex; align-items: center; gap: 0.35rem; color: #f59e0b; font-size: 0.72rem; font-weight: 600;">
-              <i class="fa-solid fa-lock"></i> Only Super Admin can assign roles
+    tbody.innerHTML = profiles.map(p => {
+      const isRootSuper = p.email === 'admin@provati.com.bd' || p.role === 'super_admin';
+      const initials = (p.full_name || 'U').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+
+      return `
+        <tr>
+          <td>
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+              <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); border: 1px solid var(--accent-emerald); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; color: #ffffff;">
+                ${initials}
+              </div>
+              <div>
+                <strong>${p.full_name}</strong>
+                ${p.email === 'admin@provati.com.bd' ? '<span style="font-size: 0.68rem; margin-left: 4px; padding: 1px 5px; border-radius: 4px; background: rgba(245, 158, 11, 0.2); color: #f59e0b; font-weight: 700;">ROOT</span>' : ''}
+              </div>
             </div>
-          `}
-        </td>
-      </tr>
-    `).join('');
+          </td>
+          <td>${p.phone || '+880 1700 000000'}</td>
+          <td style="font-family: monospace; color: var(--light-ice-blue);">${p.email}</td>
+          <td><span style="font-size: 0.82rem; color: var(--text-muted);">${p.department || 'Operations'}</span></td>
+          <td><span class="role-badge ${p.role}">${(p.role || 'user').replace('_', ' ').toUpperCase()}</span></td>
+          <td>
+            ${isSuperAdmin ? `
+              <select class="rbac-role-select" onchange="changeUserRole('${p.id}', this.value)" ${p.email === 'admin@provati.com.bd' ? 'disabled title="Root Super Administrator role is permanent"' : ''}>
+                <option value="user" ${p.role === 'user' ? 'selected' : ''}>Passenger (Customer)</option>
+                <option value="editor" ${p.role === 'editor' ? 'selected' : ''}>Counter Dispatcher (Editor)</option>
+                <option value="admin" ${p.role === 'admin' ? 'selected' : ''}>Fleet Operations Admin</option>
+                <option value="super_admin" ${p.role === 'super_admin' ? 'selected' : ''}>Super Admin Command</option>
+              </select>
+            ` : `
+              <div style="display: flex; align-items: center; gap: 0.35rem; color: #f59e0b; font-size: 0.72rem; font-weight: 600;">
+                <i class="fa-solid fa-lock"></i> Super Admin Only
+              </div>
+            `}
+          </td>
+          <td>
+            ${p.email === 'admin@provati.com.bd' ? `
+              <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;"><i class="fa-solid fa-shield"></i> Protected</span>
+            ` : isSuperAdmin ? `
+              <button class="ticket-action-btn danger" style="padding: 4px 8px; font-size: 0.72rem;" onclick="deleteUserAccount('${p.id}')" title="Remove Profile">
+                <i class="fa-solid fa-trash-can"></i> Remove
+              </button>
+            ` : `
+              <span style="font-size: 0.72rem; color: var(--text-muted);">Restricted</span>
+            `}
+          </td>
+        </tr>
+      `;
+    }).join('');
   }
+
+  window.deleteUserAccount = function(userId) {
+    const activeUser = window.provatiDB.getCurrentUser();
+    if (activeUser.role !== 'super_admin') {
+      showToast('Permission Denied: Only Super Admin can remove accounts.');
+      return;
+    }
+
+    if (confirm('Are you sure you want to remove this account profile?')) {
+      const res = window.provatiDB.removeProfile(userId);
+      if (res && res.success) {
+        renderAdminUsersTable();
+        showToast(res.message);
+      } else {
+        showToast(res ? res.message : 'Cannot remove profile.');
+      }
+    }
+  };
 
   window.changeUserRole = function(userId, newRole) {
     const activeUser = window.provatiDB.getCurrentUser();
@@ -1888,6 +2050,399 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(res.message);
     } else {
       showToast(res ? res.message : 'Role change could not be completed.');
+    }
+  };
+
+  // Staff Provisioning Modal Handlers
+  window.openCreateStaffModal = function() {
+    const activeUser = window.provatiDB.getCurrentUser();
+    if (activeUser.role !== 'super_admin') {
+      showToast('Restricted: Only Super Administrator can provision staff.');
+      openRoleSwitcherModal();
+      return;
+    }
+    const modal = document.getElementById('create-staff-modal');
+    if (modal) modal.classList.add('open');
+  };
+
+  window.closeCreateStaffModal = function() {
+    const modal = document.getElementById('create-staff-modal');
+    if (modal) modal.classList.remove('open');
+  };
+
+  window.submitCreateStaff = function() {
+    const name = document.getElementById('staff-name-input')?.value.trim();
+    const email = document.getElementById('staff-email-input')?.value.trim();
+    const phone = document.getElementById('staff-phone-input')?.value.trim();
+    const dept = document.getElementById('staff-dept-input')?.value.trim() || 'Operations';
+    const role = document.getElementById('staff-role-select')?.value || 'editor';
+
+    if (!name || !email || !phone) {
+      showToast('Please fill in Name, Official Email, and Mobile number.');
+      return;
+    }
+
+    try {
+      const newStaff = window.provatiDB.createStaffAccount({
+        full_name: name,
+        email: email,
+        phone: phone,
+        department: dept,
+        role: role
+      });
+      closeCreateStaffModal();
+      renderAdminUsersTable();
+      renderAdminAuditTable();
+      showToast(`Provisioned ${newStaff.full_name} as ${newStaff.role.replace('_', ' ').toUpperCase()} successfully!`);
+    } catch (e) {
+      showToast(e.message || 'Error provisioning staff member.');
+    }
+  };
+
+  // Master Orders Registry Handlers
+  window.setSuperOrdersFilter = function(filter, btn) {
+    state.superOrdersFilter = filter;
+    if (btn && btn.parentElement) {
+      btn.parentElement.querySelectorAll('.service-pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    renderSuperAdminOrdersTable();
+  };
+
+  window.handleSuperOrdersSearch = function(query) {
+    state.superOrdersSearch = (query || '').trim().toLowerCase();
+    renderSuperAdminOrdersTable();
+  };
+
+  window.renderSuperAdminOrdersTable = function() {
+    const tbody = document.getElementById('super-orders-tbody');
+    if (!tbody) return;
+
+    let bookings = window.provatiDB.getBookings();
+
+    // Filter by status tab
+    if (state.superOrdersFilter && state.superOrdersFilter !== 'all') {
+      bookings = bookings.filter(b => b.booking_status === state.superOrdersFilter);
+    }
+
+    // Filter by search query
+    if (state.superOrdersSearch) {
+      const q = state.superOrdersSearch;
+      bookings = bookings.filter(b =>
+        (b.pnr_code || '').toLowerCase().includes(q) ||
+        (b.passenger_name || '').toLowerCase().includes(q) ||
+        (b.passenger_phone || '').toLowerCase().includes(q) ||
+        (b.passenger_email || '').toLowerCase().includes(q) ||
+        (b.route || '').toLowerCase().includes(q) ||
+        (b.coach_number || '').toLowerCase().includes(q)
+      );
+    }
+
+    if (bookings.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="8" style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
+            <i class="fa-solid fa-inbox" style="font-size: 2rem; color: rgba(148, 163, 184, 0.4); margin-bottom: 0.5rem; display: block;"></i>
+            No passenger orders match your chosen filter.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = bookings.map(b => {
+      const seats = b.seat_numbers || [];
+      const fare = Number(b.total_amount) || 0;
+      const statusBadge = b.booking_status === 'confirmed'
+        ? '<span class="order-status-badge confirmed"><i class="fa-solid fa-circle-check"></i> CONFIRMED</span>'
+        : b.booking_status === 'pending_hold'
+        ? '<span class="order-status-badge pending_hold"><i class="fa-solid fa-hourglass-half"></i> 6H HOLD</span>'
+        : '<span class="order-status-badge cancelled"><i class="fa-solid fa-ban"></i> CANCELLED</span>';
+
+      return `
+        <tr>
+          <td>
+            <span class="order-pnr-pill">${b.pnr_code}</span>
+          </td>
+          <td>
+            <strong>${b.passenger_name}</strong><br>
+            <span style="font-size: 0.74rem; color: var(--text-muted);"><i class="fa-solid fa-phone" style="font-size: 0.65rem;"></i> ${b.passenger_phone}</span>
+          </td>
+          <td>
+            <span style="font-weight: 600; color: #ffffff;">${b.route || 'Dhaka → Chattogram'}</span><br>
+            <span style="font-size: 0.72rem; color: var(--text-muted);"><i class="fa-regular fa-clock" style="font-size: 0.65rem;"></i> ${b.journey_date || 'Scheduled'}</span>
+          </td>
+          <td>
+            <span class="coach-tag" style="font-size: 0.7rem; padding: 2px 6px;">${b.coach_number || 'PVT-DD-701'}</span>
+            <strong style="color: var(--accent-emerald); font-size: 0.85rem; margin-left: 4px;">${seats.join(', ')}</strong>
+          </td>
+          <td>
+            <strong style="color: #ffffff;">BDT ${fare.toLocaleString()}</strong>
+          </td>
+          <td>
+            <span style="font-size: 0.82rem; font-weight: 600;">${b.payment_method || 'bKash'}</span><br>
+            <span style="font-size: 0.7rem; color: ${b.payment_status === 'PAID' ? 'var(--accent-emerald)' : b.payment_status === 'HOLD_PENDING' ? '#f59e0b' : '#ef4444'}; font-weight: 700;">
+              ${b.payment_status || 'PAID'}
+            </span>
+          </td>
+          <td>
+            ${statusBadge}
+          </td>
+          <td>
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+              <button class="order-inspect-btn" onclick="openOrderDetailsModal('${b.pnr_code}')" title="Inspect Full Dossier">
+                <i class="fa-solid fa-file-invoice"></i> Inspect
+              </button>
+              ${b.booking_status === 'pending_hold' ? `
+                <button class="ticket-action-btn" style="padding: 4px 8px; font-size: 0.72rem; background: rgba(16, 185, 129, 0.2); border-color: var(--accent-emerald); color: var(--accent-emerald);" onclick="confirmSuperOrderPayment('${b.pnr_code}')" title="Collect Cash & Confirm Ticket">
+                  <i class="fa-solid fa-check"></i> Collect Cash
+                </button>
+              ` : ''}
+              ${b.booking_status === 'confirmed' ? `
+                <button class="ticket-action-btn danger" style="padding: 4px 8px; font-size: 0.72rem;" onclick="cancelSuperOrder('${b.pnr_code}')" title="Cancel Booking & Release Seats">
+                  <i class="fa-solid fa-ban"></i>
+                </button>
+              ` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  };
+
+  // Master Booking Dossier Inspector Modal
+  window.openOrderDetailsModal = function(bookingIdOrPnr) {
+    const booking = window.provatiDB.getBookingById(bookingIdOrPnr);
+    if (!booking) {
+      showToast('Order record not found.');
+      return;
+    }
+
+    const modal = document.getElementById('super-order-details-modal');
+    const titleEl = document.getElementById('dossier-modal-title');
+    const bodyEl = document.getElementById('dossier-modal-body');
+    if (!modal || !bodyEl) return;
+
+    if (titleEl) {
+      titleEl.innerHTML = `<i class="fa-solid fa-receipt" style="color: var(--accent-emerald);"></i> Master Booking Dossier: <span style="font-family: monospace; color: var(--accent-cyan);">${booking.pnr_code}</span>`;
+    }
+
+    const seats = booking.seat_numbers || [];
+    const fare = Number(booking.total_amount) || 0;
+    const perSeatFare = seats.length > 0 ? Math.round(fare / seats.length) : fare;
+    const createdAt = booking.created_at ? new Date(booking.created_at).toLocaleString() : 'Recent Booking';
+
+    bodyEl.innerHTML = `
+      <div class="dossier-grid">
+        
+        <!-- Column 1: Passenger KYC & Profile -->
+        <div class="dossier-card">
+          <div class="dossier-card-header">
+            <i class="fa-solid fa-id-card"></i>
+            <h5>Passenger KYC & Verification</h5>
+          </div>
+          <div class="dossier-row">
+            <span class="dossier-label">Full Name:</span>
+            <span class="dossier-val"><strong>${booking.passenger_name}</strong></span>
+          </div>
+          <div class="dossier-row">
+            <span class="dossier-label">Mobile Number:</span>
+            <span class="dossier-val" style="font-family: monospace;">${booking.passenger_phone}</span>
+          </div>
+          <div class="dossier-row">
+            <span class="dossier-label">Email Address:</span>
+            <span class="dossier-val" style="color: var(--light-ice-blue);">${booking.passenger_email || 'passenger@provati.com.bd'}</span>
+          </div>
+          <div class="dossier-row">
+            <span class="dossier-label">Account Link:</span>
+            <span class="dossier-val"><span class="role-badge user" style="font-size: 0.65rem;">PASSENGER</span></span>
+          </div>
+          <div class="dossier-row">
+            <span class="dossier-label">Booked At:</span>
+            <span class="dossier-val" style="font-size: 0.75rem;">${createdAt}</span>
+          </div>
+        </div>
+
+        <!-- Column 2: Journey Corridor & Fleet Coach -->
+        <div class="dossier-card">
+          <div class="dossier-card-header">
+            <i class="fa-solid fa-bus-simple"></i>
+            <h5>Corridor & Fleet Vehicle</h5>
+          </div>
+          <div class="dossier-row">
+            <span class="dossier-label">Route:</span>
+            <span class="dossier-val"><strong>${booking.route || 'Dhaka → Chattogram'}</strong></span>
+          </div>
+          <div class="dossier-row">
+            <span class="dossier-label">Operating Coach:</span>
+            <span class="dossier-val"><span class="coach-tag" style="font-size: 0.72rem;">${booking.coach_number || 'PVT-DD-701'}</span></span>
+          </div>
+          <div class="dossier-row">
+            <span class="dossier-label">Boarding Station:</span>
+            <span class="dossier-val">${booking.boarding_point || 'Sayedabad VIP Terminal'}</span>
+          </div>
+          <div class="dossier-row">
+            <span class="dossier-label">Dropping Station:</span>
+            <span class="dossier-val">${booking.dropping_point || 'Dampara Provati Lounge'}</span>
+          </div>
+          <div class="dossier-row">
+            <span class="dossier-label">Departure Schedule:</span>
+            <span class="dossier-val" style="color: var(--dawn-amber); font-weight: 700;">${booking.journey_date || 'Today'} • ${booking.departure_time ? new Date(booking.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '08:30 PM'}</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Seats Reserved List -->
+      <div class="dossier-card" style="margin-top: 1rem;">
+        <div class="dossier-card-header">
+          <i class="fa-solid fa-couch"></i>
+          <h5>Reserved Seat Berths & Passenger Berths</h5>
+        </div>
+        <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; margin-top: 0.5rem;">
+          ${seats.map(s => `
+            <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-emerald); color: #ffffff; padding: 6px 14px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+              <i class="fa-solid fa-couch" style="color: var(--accent-emerald); font-size: 0.8rem;"></i> Seat ${s}
+            </span>
+          `).join('')}
+          <span style="font-size: 0.82rem; color: var(--text-muted); margin-left: 0.5rem;">
+            (${seats.length} total ${seats.length === 1 ? 'seat' : 'seats'} reserved on this digital PNR)
+          </span>
+        </div>
+      </div>
+
+      <!-- Financial Ledger & Fare Calculation -->
+      <div class="dossier-card" style="margin-top: 1rem;">
+        <div class="dossier-card-header">
+          <i class="fa-solid fa-calculator"></i>
+          <h5>Fare Calculation & Transaction Ledger</h5>
+        </div>
+        
+        <div class="dossier-fare-breakdown">
+          <div class="dossier-row">
+            <span class="dossier-label">Base Ticket Fare (${seats.length} × BDT ${perSeatFare.toLocaleString()}):</span>
+            <span class="dossier-val">BDT ${(perSeatFare * seats.length).toLocaleString()}</span>
+          </div>
+          <div class="dossier-row">
+            <span class="dossier-label">Digital Ticketing & Terminal Service Fee:</span>
+            <span class="dossier-val" style="color: var(--accent-emerald);">BDT 0 (100% Free)</span>
+          </div>
+          <div class="dossier-row" style="border-top: 1px dashed var(--glass-border); padding-top: 0.65rem; margin-top: 0.4rem;">
+            <span class="dossier-label" style="font-size: 1rem; font-weight: 800; color: #ffffff;">Grand Total Amount:</span>
+            <span class="dossier-val" style="font-size: 1.25rem; font-weight: 900; color: var(--accent-emerald);">BDT ${fare.toLocaleString()}</span>
+          </div>
+          <div class="dossier-row">
+            <span class="dossier-label">Payment Method:</span>
+            <span class="dossier-val"><strong>${booking.payment_method || 'bKash'}</strong></span>
+          </div>
+          <div class="dossier-row">
+            <span class="dossier-label">Gateway Transaction Reference:</span>
+            <span class="dossier-val" style="font-family: monospace; color: var(--accent-cyan);">${booking.payment_txn_id || ('TXN-PVT-' + booking.pnr_code.replace(/[^0-9A-Z]/g, ''))}</span>
+          </div>
+          <div class="dossier-row">
+            <span class="dossier-label">Payment Ledger Status:</span>
+            <span class="dossier-val">
+              <span class="order-status-badge ${booking.booking_status}">${booking.payment_status || 'PAID'}</span>
+            </span>
+          </div>
+        </div>
+
+        ${booking.booking_status === 'pending_hold' ? `
+          <div style="margin-top: 1rem; padding: 0.9rem; border-radius: 10px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+            <div>
+              <strong style="color: #f59e0b; display: flex; align-items: center; gap: 0.4rem;">
+                <i class="fa-solid fa-hourglass-half"></i> 6-Hour Cash-at-Counter Hold Active
+              </strong>
+              <p style="font-size: 0.75rem; color: #fde68a; margin-top: 0.2rem;">
+                Passenger has until 6 hours prior to bus departure to pay cash at Sayedabad or Dampara counter.
+              </p>
+            </div>
+            <button class="proceed-payment-cta" style="padding: 0.5rem 1.1rem; font-size: 0.85rem;" onclick="confirmSuperOrderPayment('${booking.pnr_code}')">
+              <i class="fa-solid fa-cash-register"></i> Collect Cash & Settle Payment
+            </button>
+          </div>
+        ` : ''}
+
+      </div>
+
+      <!-- Action Footer -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+        <button class="ticket-action-btn" onclick="printBookingFromDossier('${booking.pnr_code}')">
+          <i class="fa-solid fa-print"></i> Print Official Boarding Pass
+        </button>
+
+        <div style="display: flex; gap: 0.6rem;">
+          ${booking.booking_status !== 'cancelled' ? `
+            <button class="ticket-action-btn danger" onclick="cancelSuperOrder('${booking.pnr_code}')">
+              <i class="fa-solid fa-ban"></i> Cancel Booking & Release Seats
+            </button>
+          ` : `
+            <span style="font-size: 0.8rem; color: #ef4444; font-weight: 700;"><i class="fa-solid fa-ban"></i> Booking is Cancelled</span>
+          `}
+          <button class="proceed-payment-cta" style="padding: 0.5rem 1.25rem;" onclick="closeOrderDetailsModal()">
+            Done
+          </button>
+        </div>
+      </div>
+    `;
+
+    modal.classList.add('open');
+  };
+
+  window.closeOrderDetailsModal = function() {
+    const modal = document.getElementById('super-order-details-modal');
+    if (modal) modal.classList.remove('open');
+  };
+
+  window.confirmSuperOrderPayment = function(pnrCode) {
+    const res = window.provatiDB.confirmCounterHoldPayment(pnrCode);
+    if (res) {
+      renderSuperAdminOrdersTable();
+      renderAdminWorkspace();
+      openOrderDetailsModal(pnrCode);
+      showToast(`Payment settled! Booking ${pnrCode} is now officially CONFIRMED.`);
+    } else {
+      showToast('Could not confirm payment for this booking.');
+    }
+  };
+
+  window.cancelSuperOrder = function(pnrCode) {
+    if (confirm(`Are you sure you want to cancel booking ${pnrCode} and release all seats?`)) {
+      const res = window.provatiDB.cancelBooking(pnrCode);
+      if (res) {
+        renderSuperAdminOrdersTable();
+        renderAdminWorkspace();
+        renderSchedules();
+        closeOrderDetailsModal();
+        showToast(`Booking ${pnrCode} cancelled and seats released back to fleet inventory.`);
+      } else {
+        showToast('Could not cancel booking.');
+      }
+    }
+  };
+
+  window.printBookingFromDossier = function(pnrCode) {
+    const booking = window.provatiDB.getBookingById(pnrCode);
+    if (!booking) return;
+    window.print();
+  };
+
+  window.triggerManualSupabaseSync = async function() {
+    showToast('Connecting to Supabase Cloud Pipeline...');
+    try {
+      const res = await window.provatiDB.syncWithLiveSupabase();
+      updateSupabaseStatusUI();
+      updateCloudPipelineStats();
+      renderSuperAdminOrdersTable();
+      renderAdminUsersTable();
+      renderSchedules();
+      if (res) {
+        showToast('Supabase Live Sync Complete! Cloud data reloaded.');
+      } else {
+        showToast('Local cache verified. Cloud sync standing by.');
+      }
+    } catch (e) {
+      showToast('Sync error: ' + (e.message || 'Check network'));
     }
   };
 
