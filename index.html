@@ -1707,42 +1707,140 @@
   </div>
 
   <!-- ============================================================================
-       MODAL 4: ROLE SWITCHER MODAL (RBAC)
+       MODAL 4: UNIFIED PORTAL LOGIN & RBAC ROLE SWITCHER (ALL-IN-ONE)
        ============================================================================ -->
   <div class="modal-overlay" id="role-switcher-modal">
-    <div class="payment-modal-box" style="max-width: 500px;">
+    <div class="auth-modal-box">
+      
       <div class="payment-modal-header">
-        <h3><i class="fa-solid fa-user-gear"></i> Switch Active Workspace Role</h3>
+        <h3><i class="fa-solid fa-id-card-clip" style="color: var(--accent-emerald);"></i> Universal Portal Login & Role Switcher</h3>
         <button class="close-modal-x" onclick="closeRoleSwitcherModal()">&times;</button>
       </div>
-      <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+
+      <div class="auth-modal-body">
         
-        <!-- User Option -->
-        <div class="glass-card" style="padding: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between;" onclick="selectRoleUser('usr-3')">
-          <div>
-            <h4 style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">Passenger / Consumer View</h4>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Shuharthu Barua (Search, Seating map, MFS payments, E-ticket)</span>
+        <!-- Email Input Section -->
+        <div class="auth-input-group">
+          <label class="auth-input-label" for="auth-email-input">
+            <span><i class="fa-solid fa-envelope"></i> Enter Your Account Email</span>
+            <span style="font-size: 0.68rem; color: #94a3b8; font-weight: normal;">Live Role Detection Active</span>
+          </label>
+          <div class="auth-input-wrapper">
+            <i class="fa-solid fa-at auth-input-icon"></i>
+            <input 
+              type="email" 
+              id="auth-email-input" 
+              class="auth-email-field" 
+              placeholder="e.g. shuharthu@example.com or admin@provati.com.bd" 
+              autocomplete="email"
+              oninput="handleAuthEmailInput()"
+            />
           </div>
-          <span class="role-badge user">USER</span>
+
+          <!-- Quick Test Demo Chips -->
+          <div class="auth-quick-chips-row">
+            <span class="auth-chip-label">Quick Test:</span>
+            <button type="button" class="auth-chip-btn" onclick="quickFillAuth('admin@provati.com.bd', 'super_admin')">
+              <i class="fa-solid fa-crown" style="color: #f87171;"></i> Super Admin
+            </button>
+            <button type="button" class="auth-chip-btn" onclick="quickFillAuth('admin.ops@provati.com.bd', 'admin')">
+              <i class="fa-solid fa-user-shield" style="color: #60a5fa;"></i> Fleet Admin
+            </button>
+            <button type="button" class="auth-chip-btn" onclick="quickFillAuth('editor@provati.com.bd', 'editor')">
+              <i class="fa-solid fa-clipboard-check" style="color: #fbbf24;"></i> Dispatcher
+            </button>
+            <button type="button" class="auth-chip-btn" onclick="quickFillAuth('shuharthu@example.com', 'user')">
+              <i class="fa-solid fa-user" style="color: #34d399;"></i> Passenger
+            </button>
+          </div>
         </div>
 
-        <!-- Editor Option -->
-        <div class="glass-card" style="padding: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between;" onclick="selectRoleUser('usr-2')">
-          <div>
-            <h4 style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">Counter Editor / Dispatcher</h4>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Farhana Yasmin (Schedule modifier, VIP blocking, Passenger manifest)</span>
-          </div>
-          <span class="role-badge editor">EDITOR</span>
+        <!-- Realtime Role Detection & Greyed-out Warning Banner -->
+        <div id="auth-email-feedback" class="auth-feedback-box default">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Type an email above or click a demo account. Normal passenger emails automatically grey out staff & admin roles.</span>
         </div>
 
-        <!-- Admin Option -->
-        <div class="glass-card" style="padding: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between;" onclick="selectRoleUser('usr-1')">
-          <div>
-            <h4 style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">Super Admin Command</h4>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Tariqul Islam (Financial audit, User roles, Supabase database sync)</span>
+        <!-- 4 Role Selection Cards -->
+        <div class="auth-roles-list">
+          
+          <!-- 1. Customer / Passenger -->
+          <div class="auth-role-card selected" id="role-card-user" onclick="selectRoleOption('user')">
+            <div class="role-card-left">
+              <div class="role-card-icon-wrap user">
+                <i class="fa-solid fa-couch"></i>
+              </div>
+              <div class="role-card-details">
+                <h5>Passenger / Customer <span class="role-badge user">USER</span></h5>
+                <p>Search schedules, choose sleeper berths, bKash/Nagad payments, PNR digital passes.</p>
+              </div>
+            </div>
+            <div class="role-card-badge-col">
+              <i class="fa-solid fa-circle-check role-active-check"></i>
+            </div>
           </div>
-          <span class="role-badge super_admin">SUPER ADMIN</span>
+
+          <!-- 2. Counter Dispatcher (Editor) -->
+          <div class="auth-role-card" id="role-card-editor" onclick="selectRoleOption('editor')">
+            <div class="role-card-left">
+              <div class="role-card-icon-wrap editor">
+                <i class="fa-solid fa-clipboard-list"></i>
+              </div>
+              <div class="role-card-details">
+                <h5>Counter Dispatcher <span class="role-badge editor">EDITOR</span></h5>
+                <p>Coach delay updates, passenger manifests, 6H cash-at-counter hold issuance.</p>
+              </div>
+            </div>
+            <div class="role-card-badge-col">
+              <span class="role-lock-tag" id="lock-tag-editor"><i class="fa-solid fa-lock"></i> Staff Access Required</span>
+              <i class="fa-solid fa-circle-check role-active-check"></i>
+            </div>
+          </div>
+
+          <!-- 3. Fleet Operations Admin -->
+          <div class="auth-role-card" id="role-card-admin" onclick="selectRoleOption('admin')">
+            <div class="role-card-left">
+              <div class="role-card-icon-wrap admin">
+                <i class="fa-solid fa-user-shield"></i>
+              </div>
+              <div class="role-card-details">
+                <h5>Fleet Operations Admin <span class="role-badge admin">ADMIN</span></h5>
+                <p>Manage trip schedules, adjust base fares, monitor financial analytics & revenue.</p>
+              </div>
+            </div>
+            <div class="role-card-badge-col">
+              <span class="role-lock-tag" id="lock-tag-admin"><i class="fa-solid fa-lock"></i> Admin Role Required</span>
+              <i class="fa-solid fa-circle-check role-active-check"></i>
+            </div>
+          </div>
+
+          <!-- 4. Super Admin Command -->
+          <div class="auth-role-card" id="role-card-super_admin" onclick="selectRoleOption('super_admin')">
+            <div class="role-card-left">
+              <div class="role-card-icon-wrap super">
+                <i class="fa-solid fa-crown"></i>
+              </div>
+              <div class="role-card-details">
+                <h5>Super Admin Command <span class="role-badge super_admin">SUPER ADMIN</span></h5>
+                <p>Authorize Admin & Editor roles, immutable audit logs, Supabase database synchronization.</p>
+              </div>
+            </div>
+            <div class="role-card-badge-col">
+              <span class="role-lock-tag" id="lock-tag-super_admin"><i class="fa-solid fa-lock"></i> Super Admin Only</span>
+              <i class="fa-solid fa-circle-check role-active-check"></i>
+            </div>
+          </div>
+
         </div>
+
+        <!-- Submit Button -->
+        <button type="button" class="auth-login-submit-btn" id="auth-submit-btn" onclick="submitAuthLogin()">
+          <i class="fa-solid fa-right-to-bracket"></i> Continue to Workspace
+        </button>
+
+        <p style="font-size: 0.72rem; color: #64748b; text-align: center; margin: 0;">
+          <i class="fa-solid fa-shield-halved"></i> Role enforcement policy: Only Super Admin can promote accounts to Admin or Editor.
+        </p>
 
       </div>
     </div>
