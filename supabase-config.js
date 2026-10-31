@@ -437,7 +437,16 @@ const SEED_PROFILES = [
     email: 'admin@provati.com.bd',
     role: 'super_admin',
     avatar: 'assets/logo-transparent.png',
-    department: 'Executive Operations'
+    department: 'Executive Operations & Governance'
+  },
+  {
+    id: 'usr-4',
+    full_name: 'Kamrul Hasan (Fleet Admin)',
+    phone: '+880 1733 556677',
+    email: 'admin.ops@provati.com.bd',
+    role: 'admin',
+    avatar: 'assets/logo-transparent.png',
+    department: 'Fleet Operations & Fares'
   },
   {
     id: 'usr-2',
@@ -521,6 +530,21 @@ class ProvatiDB {
     }
     if (!localStorage.getItem(STORAGE_KEYS.PROFILES)) {
       localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(SEED_PROFILES));
+    } else {
+      // Ensure seed staff profiles exist in storage
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES)) || [];
+        let updated = false;
+        SEED_PROFILES.forEach(seedP => {
+          if (!stored.some(p => (p.email || '').toLowerCase() === seedP.email.toLowerCase())) {
+            stored.push(seedP);
+            updated = true;
+          }
+        });
+        if (updated) {
+          localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(stored));
+        }
+      } catch (e) {}
     }
     if (!localStorage.getItem(STORAGE_KEYS.AUDIT_LOGS)) {
       localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(SEED_AUDIT_LOGS));
@@ -528,7 +552,7 @@ class ProvatiDB {
 
     // Default current user to Passenger (User)
     if (!localStorage.getItem(STORAGE_KEYS.CURRENT_USER)) {
-      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(SEED_PROFILES[2])); // Default passenger
+      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(SEED_PROFILES[3])); // Default passenger Shuharthu
     }
   }
 
@@ -549,9 +573,9 @@ class ProvatiDB {
   // --- Auth / User Profiles ---
   getCurrentUser() {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEYS.CURRENT_USER)) || SEED_PROFILES[2];
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.CURRENT_USER)) || SEED_PROFILES[3];
     } catch (e) {
-      return SEED_PROFILES[2];
+      return SEED_PROFILES[3];
     }
   }
 
@@ -570,24 +594,96 @@ class ProvatiDB {
     }
   }
 
+  findProfileByEmail(email) {
+    if (!email) return null;
+    const cleanEmail = email.trim().toLowerCase();
+    const profiles = this.getAllProfiles();
+    return profiles.find(p => (p.email || '').toLowerCase() === cleanEmail) || null;
+  }
+
+  /**
+   * Only Super Admin is authorized to change or assign roles (Admin, Editor, User).
+   */
   updateProfileRole(userId, newRole) {
+    const activeUser = this.getCurrentUser();
+    
+    // Strict RBAC check: only super_admin can set admin/editor/super_admin roles!
+    if (activeUser.role !== 'super_admin') {
+      console.warn('Blocked unauthorized role update attempt: Only Super Admin can assign roles.');
+      return { success: false, message: 'Permission Denied: Only Super Admin can assign Admin or Editor roles.' };
+    }
+
     const profiles = this.getAllProfiles();
     const target = profiles.find(p => p.id === userId);
     if (target) {
+      const oldRole = target.role;
       target.role = newRole;
       localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
 
       // If active user is this user, update active user as well
-      const activeUser = this.getCurrentUser();
       if (activeUser.id === userId) {
         activeUser.role = newRole;
         localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(activeUser));
       }
 
-      this.logAudit('Super Admin', 'super_admin', 'UPDATE_ROLE', `Changed ${target.full_name}'s role to ${newRole}`);
+      this.logAudit('Super Admin', 'super_admin', 'UPDATE_ROLE', `Super Admin promoted/changed ${target.full_name}'s role from ${oldRole} to ${newRole}`);
+      this.notify('PROFILES_UPDATED', profiles);
+      return { success: true, message: `Access level for ${target.full_name} updated to ${newRole.toUpperCase()}.` };
+    }
+    return { success: false, message: 'Target user profile not found.' };
+  }
+
+  /**
+   * Universal Login / Switcher on a single site:
+   * Handles email lookup and enforces role authorization.
+   * If normal user types email, admin/editor roles are restricted.
+   */
+  loginWithEmail(email, requestedRole) {
+    if (!email || !email.trim()) {
+      throw new Error('Please enter a valid email address.');
+    }
+    const cleanEmail = email.trim().toLowerCase();
+    let profiles = this.getAllProfiles();
+    let profile = profiles.find(p => (p.email || '').toLowerCase() === cleanEmail);
+
+    if (!profile) {
+      // Automatic customer registration: default role strictly 'user'
+      const namePart = cleanEmail.split('@')[0].replace(/[._]/g, ' ');
+      const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+      profile = {
+        id: 'usr-' + Date.now(),
+        full_name: `${formattedName} (Passenger)`,
+        phone: '+880 1700 000000',
+        email: cleanEmail,
+        role: 'user', // strictly passenger by default
+        avatar: 'assets/logo-transparent.png',
+        department: 'Customer / Passenger'
+      };
+      profiles.push(profile);
+      localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
       this.notify('PROFILES_UPDATED', profiles);
     }
-    return profiles;
+
+    // Role enforcement based on DB profile:
+    let effectiveRole = profile.role;
+    if (profile.role === 'super_admin') {
+      effectiveRole = requestedRole || 'super_admin';
+    } else if (profile.role === 'admin') {
+      effectiveRole = (requestedRole === 'super_admin') ? 'admin' : (requestedRole || 'admin');
+    } else if (profile.role === 'editor') {
+      effectiveRole = (requestedRole === 'editor' || requestedRole === 'user') ? requestedRole : 'editor';
+    } else {
+      // Normal user (Customer) - can NEVER have staff role unless Super Admin sets it
+      effectiveRole = 'user';
+    }
+
+    const sessionUser = {
+      ...profile,
+      role: effectiveRole
+    };
+
+    this.setCurrentUser(sessionUser);
+    return sessionUser;
   }
 
   // --- Buses Fleet ---

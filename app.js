@@ -144,30 +144,38 @@ document.addEventListener('DOMContentLoaded', () => {
     state.activeRole = viewRole;
     updateActiveUserUI();
 
-    if (viewRole === 'editor') {
-      switchPortalTab('editor');
-      const portalSec = document.getElementById('portal-section');
-      if (portalSec) {
-        portalSec.scrollIntoView({ behavior: 'smooth' });
-      }
-      showToast('Switched to Counter Dispatcher Hub');
-    } else if (viewRole === 'admin' || viewRole === 'super_admin') {
+    if (viewRole === 'super_admin') {
       switchPortalTab('admin');
       const portalSec = document.getElementById('portal-section');
-      if (portalSec) {
-        portalSec.scrollIntoView({ behavior: 'smooth' });
-      }
-      showToast('Switched to Super Admin Command');
+      if (portalSec) portalSec.scrollIntoView({ behavior: 'smooth' });
+      showToast('Switched to Super Admin Command Workspace');
+    } else if (viewRole === 'admin') {
+      switchPortalTab('analytics');
+      const portalSec = document.getElementById('portal-section');
+      if (portalSec) portalSec.scrollIntoView({ behavior: 'smooth' });
+      showToast('Switched to Fleet Operations Admin Workspace');
+    } else if (viewRole === 'editor') {
+      switchPortalTab('editor');
+      const portalSec = document.getElementById('portal-section');
+      if (portalSec) portalSec.scrollIntoView({ behavior: 'smooth' });
+      showToast('Switched to Counter Dispatcher Hub');
     } else {
       const bookingSec = document.getElementById('booking-section');
-      if (bookingSec) {
-        bookingSec.scrollIntoView({ behavior: 'smooth' });
-      }
+      if (bookingSec) bookingSec.scrollIntoView({ behavior: 'smooth' });
       showToast('Switched to Passenger Booking Mode');
     }
   };
 
   window.switchPortalTab = function(tabName) {
+    const activeUser = window.provatiDB.getCurrentUser();
+
+    // Guard: Only super_admin can open Super Admin Command tab
+    if (tabName === 'admin' && activeUser.role !== 'super_admin') {
+      showToast('Restricted: Super Admin Command requires Super Administrator sign-in.');
+      openRoleSwitcherModal();
+      return;
+    }
+
     const tabs = ['analytics', 'editor', 'admin'];
     tabs.forEach(t => {
       const tabBtn = document.getElementById(`tab-portal-${t}`);
@@ -200,42 +208,195 @@ document.addEventListener('DOMContentLoaded', () => {
     const passNameInput = document.getElementById('passenger-name-input');
     const passPhoneInput = document.getElementById('passenger-phone-input');
 
-    if (nameEl) nameEl.textContent = user.full_name.split(' (')[0];
+    if (nameEl) nameEl.textContent = user.full_name ? user.full_name.split(' (')[0] : 'Passenger';
     if (badgeEl) {
-      badgeEl.className = `role-badge ${user.role}`;
-      badgeEl.textContent = user.role.replace('_', ' ');
+      badgeEl.className = `role-badge ${user.role || 'user'}`;
+      badgeEl.textContent = (user.role || 'user').replace('_', ' ');
     }
     if (portalRoleEl) {
-      portalRoleEl.textContent = user.role === 'super_admin' ? 'Super Administrator' : user.role === 'editor' ? 'Counter Dispatcher (Editor)' : 'Passenger (User)';
+      portalRoleEl.textContent = user.role === 'super_admin'
+        ? 'Super Administrator (Full Authority)'
+        : user.role === 'admin'
+        ? 'Fleet Operations Admin'
+        : user.role === 'editor'
+        ? 'Counter Dispatcher (Editor)'
+        : 'Passenger (Customer)';
     }
 
-    if (passNameInput && user.role === 'user') passNameInput.value = user.full_name.split(' (')[0];
-    if (passPhoneInput && user.role === 'user') passPhoneInput.value = user.phone;
+    if (passNameInput && user.role === 'user') passNameInput.value = user.full_name ? user.full_name.split(' (')[0] : '';
+    if (passPhoneInput && user.role === 'user') passPhoneInput.value = user.phone || '';
   }
 
+  // ============================================================================
+  // UNIFIED AUTHENTICATION & LIVE ROLE DETECTION
+  // ============================================================================
+  state.selectedAuthRole = 'user';
+
   window.openRoleSwitcherModal = function() {
-    document.getElementById('role-switcher-modal').classList.add('open');
+    const modal = document.getElementById('role-switcher-modal');
+    if (!modal) return;
+    modal.classList.add('open');
+
+    // Pre-fill with current user's email
+    const emailInput = document.getElementById('auth-email-input');
+    const user = window.provatiDB.getCurrentUser();
+    if (emailInput && user && user.email) {
+      emailInput.value = user.email;
+      handleAuthEmailInput();
+    } else if (emailInput) {
+      emailInput.value = '';
+      handleAuthEmailInput();
+    }
   };
 
   window.closeRoleSwitcherModal = function() {
-    document.getElementById('role-switcher-modal').classList.remove('open');
+    const modal = document.getElementById('role-switcher-modal');
+    if (modal) modal.classList.remove('open');
   };
 
-  window.selectRoleUser = function(userId) {
-    const profiles = window.provatiDB.getAllProfiles();
-    const target = profiles.find(p => p.id === userId);
-    if (target) {
-      window.provatiDB.setCurrentUser(target);
-      updateActiveUserUI();
-      closeRoleSwitcherModal();
+  /**
+   * Real-time Email Input Handler:
+   * Greys out admin/superadmin/editor for normal users automatically!
+   */
+  window.handleAuthEmailInput = function() {
+    const input = document.getElementById('auth-email-input');
+    const feedback = document.getElementById('auth-email-feedback');
+    if (!input) return;
 
-      if (target.role === 'super_admin') {
-        switchView('admin');
-      } else if (target.role === 'editor') {
-        switchView('editor');
+    const email = input.value.trim().toLowerCase();
+    const profile = window.provatiDB.findProfileByEmail(email);
+
+    const userCard = document.getElementById('role-card-user');
+    const editorCard = document.getElementById('role-card-editor');
+    const adminCard = document.getElementById('role-card-admin');
+    const superCard = document.getElementById('role-card-super_admin');
+
+    // Helper to configure card state
+    function setCardState(card, lockTagId, isEnabled, lockMessage) {
+      if (!card) return;
+      const lockTag = document.getElementById(lockTagId);
+      if (isEnabled) {
+        card.classList.remove('role-card-disabled');
+        if (lockTag) lockTag.style.display = 'none';
       } else {
-        switchView('user');
+        card.classList.add('role-card-disabled');
+        if (lockTag) {
+          lockTag.style.display = 'inline-flex';
+          lockTag.innerHTML = `<i class="fa-solid fa-lock"></i> ${lockMessage || 'Locked'}`;
+        }
       }
+    }
+
+    // 1. If email is empty:
+    if (!email) {
+      if (feedback) {
+        feedback.className = 'auth-feedback-box default';
+        feedback.innerHTML = `<i class="fa-solid fa-circle-info"></i> <span>Type an email above or click a demo account. Normal passenger emails automatically grey out staff & admin roles.</span>`;
+      }
+      setCardState(userCard, 'lock-tag-user', true);
+      setCardState(editorCard, 'lock-tag-editor', false, 'Authorized Editor Required');
+      setCardState(adminCard, 'lock-tag-admin', false, 'Authorized Admin Required');
+      setCardState(superCard, 'lock-tag-super_admin', false, 'Super Admin Only');
+      selectRoleOption('user');
+      return;
+    }
+
+    // 2. Check profile authority
+    const authorizedRole = profile ? profile.role : 'user';
+
+    if (authorizedRole === 'super_admin' || email === 'admin@provati.com.bd') {
+      // Super Admin: All 4 roles unlocked
+      if (feedback) {
+        feedback.className = 'auth-feedback-box super';
+        feedback.innerHTML = `<i class="fa-solid fa-crown"></i> <span><strong>Super Administrator Verified!</strong> All workspace roles and permission settings unlocked.</span>`;
+      }
+      setCardState(userCard, 'lock-tag-user', true);
+      setCardState(editorCard, 'lock-tag-editor', true);
+      setCardState(adminCard, 'lock-tag-admin', true);
+      setCardState(superCard, 'lock-tag-super_admin', true);
+      selectRoleOption(state.selectedAuthRole || 'super_admin');
+    } else if (authorizedRole === 'admin' || email === 'admin.ops@provati.com.bd') {
+      // Fleet Admin: Admin, Editor, User unlocked; Super Admin greyed out
+      if (feedback) {
+        feedback.className = 'auth-feedback-box admin';
+        feedback.innerHTML = `<i class="fa-solid fa-user-shield"></i> <span><strong>Fleet Administrator Verified!</strong> Admin, Dispatcher desk, and Passenger roles unlocked.</span>`;
+      }
+      setCardState(userCard, 'lock-tag-user', true);
+      setCardState(editorCard, 'lock-tag-editor', true);
+      setCardState(adminCard, 'lock-tag-admin', true);
+      setCardState(superCard, 'lock-tag-super_admin', false, 'Super Admin Clearance Required');
+      selectRoleOption(state.selectedAuthRole === 'super_admin' ? 'admin' : (state.selectedAuthRole || 'admin'));
+    } else if (authorizedRole === 'editor' || email === 'editor@provati.com.bd') {
+      // Dispatcher: Editor and User unlocked; Admin and Super Admin greyed out
+      if (feedback) {
+        feedback.className = 'auth-feedback-box editor';
+        feedback.innerHTML = `<i class="fa-solid fa-clipboard-check"></i> <span><strong>Counter Dispatcher Verified!</strong> Dispatcher desk and Passenger view unlocked.</span>`;
+      }
+      setCardState(userCard, 'lock-tag-user', true);
+      setCardState(editorCard, 'lock-tag-editor', true);
+      setCardState(adminCard, 'lock-tag-admin', false, 'Admin Authorization Required');
+      setCardState(superCard, 'lock-tag-super_admin', false, 'Super Admin Clearance Required');
+      selectRoleOption(state.selectedAuthRole === 'super_admin' || state.selectedAuthRole === 'admin' ? 'editor' : (state.selectedAuthRole || 'editor'));
+    } else {
+      // Normal User (Customer):
+      // "normal user er jonno, email box e email type korar por automatic r admin/superadmin/editor er option gula grey hoye jabe."
+      if (feedback) {
+        feedback.className = 'auth-feedback-box user';
+        feedback.innerHTML = `<i class="fa-solid fa-user-lock"></i> <span><strong>Customer (Passenger) Account.</strong> Staff and Admin roles are greyed out. Only Super Admin can authorize Admin/Editor access.</span>`;
+      }
+      setCardState(userCard, 'lock-tag-user', true);
+      setCardState(editorCard, 'lock-tag-editor', false, 'Greyed out (Normal User)');
+      setCardState(adminCard, 'lock-tag-admin', false, 'Greyed out (Normal User)');
+      setCardState(superCard, 'lock-tag-super_admin', false, 'Greyed out (Normal User)');
+      selectRoleOption('user');
+    }
+  };
+
+  window.selectRoleOption = function(role) {
+    const targetCard = document.getElementById(`role-card-${role}`);
+    if (targetCard && targetCard.classList.contains('role-card-disabled')) {
+      return; // Disabled for normal users!
+    }
+
+    state.selectedAuthRole = role;
+    ['user', 'editor', 'admin', 'super_admin'].forEach(r => {
+      const card = document.getElementById(`role-card-${r}`);
+      if (card) {
+        if (r === role) card.classList.add('selected');
+        else card.classList.remove('selected');
+      }
+    });
+  };
+
+  window.quickFillAuth = function(email, role) {
+    const emailInput = document.getElementById('auth-email-input');
+    if (emailInput) {
+      emailInput.value = email;
+      state.selectedAuthRole = role;
+      handleAuthEmailInput();
+      selectRoleOption(role);
+    }
+  };
+
+  window.submitAuthLogin = function() {
+    const emailInput = document.getElementById('auth-email-input');
+    const email = emailInput ? emailInput.value.trim() : '';
+
+    if (!email) {
+      showToast('Please type your email address.');
+      emailInput?.focus();
+      return;
+    }
+
+    try {
+      const user = window.provatiDB.loginWithEmail(email, state.selectedAuthRole);
+      closeRoleSwitcherModal();
+      updateActiveUserUI();
+      renderAdminUsersTable();
+      switchView(user.role);
+      showToast(`Welcome, ${user.full_name}! Active role: ${user.role.replace('_', ' ').toUpperCase()}`);
+    } catch (e) {
+      showToast(e.message || 'Login error');
     }
   };
 
@@ -1426,29 +1587,48 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!tbody) return;
 
     const profiles = window.provatiDB.getAllProfiles();
+    const activeUser = window.provatiDB.getCurrentUser();
+    const isSuperAdmin = activeUser && activeUser.role === 'super_admin';
 
     tbody.innerHTML = profiles.map(p => `
       <tr>
         <td><strong>${p.full_name}</strong></td>
-        <td>${p.phone}</td>
-        <td>${p.email}</td>
-        <td><span class="role-badge ${p.role}">${p.role.replace('_', ' ').toUpperCase()}</span></td>
+        <td>${p.phone || 'N/A'}</td>
+        <td style="font-family: monospace; color: var(--light-ice-blue);">${p.email}</td>
+        <td><span class="role-badge ${p.role}">${(p.role || 'user').replace('_', ' ').toUpperCase()}</span></td>
         <td>
-          <select style="background: #0f172a; border: 1px solid var(--glass-border); color: #fff; padding: 4px 8px; border-radius: 6px; cursor: pointer;" onchange="changeUserRole('${p.id}', this.value)">
-            <option value="user" ${p.role === 'user' ? 'selected' : ''}>Passenger (User)</option>
-            <option value="editor" ${p.role === 'editor' ? 'selected' : ''}>Dispatcher (Editor)</option>
-            <option value="super_admin" ${p.role === 'super_admin' ? 'selected' : ''}>Super Admin</option>
-          </select>
+          ${isSuperAdmin ? `
+            <select class="rbac-role-select" onchange="changeUserRole('${p.id}', this.value)">
+              <option value="user" ${p.role === 'user' ? 'selected' : ''}>Passenger (Customer)</option>
+              <option value="editor" ${p.role === 'editor' ? 'selected' : ''}>Counter Dispatcher (Editor)</option>
+              <option value="admin" ${p.role === 'admin' ? 'selected' : ''}>Fleet Operations Admin</option>
+              <option value="super_admin" ${p.role === 'super_admin' ? 'selected' : ''}>Super Admin Command</option>
+            </select>
+          ` : `
+            <div style="display: flex; align-items: center; gap: 0.35rem; color: #f59e0b; font-size: 0.72rem; font-weight: 600;">
+              <i class="fa-solid fa-lock"></i> Only Super Admin can assign roles
+            </div>
+          `}
         </td>
       </tr>
     `).join('');
   }
 
   window.changeUserRole = function(userId, newRole) {
-    window.provatiDB.updateProfileRole(userId, newRole);
-    updateActiveUserUI();
-    renderAdminUsersTable();
-    showToast(`Access level updated for user.`);
+    const activeUser = window.provatiDB.getCurrentUser();
+    if (activeUser.role !== 'super_admin') {
+      showToast('Permission Denied: Only Super Admin can assign Admin or Editor roles.');
+      return;
+    }
+
+    const res = window.provatiDB.updateProfileRole(userId, newRole);
+    if (res && res.success) {
+      updateActiveUserUI();
+      renderAdminUsersTable();
+      showToast(res.message);
+    } else {
+      showToast(res ? res.message : 'Role change could not be completed.');
+    }
   };
 
   function renderAdminAuditTable() {

@@ -501,6 +501,12 @@ body {
   border: 1px solid rgba(239, 68, 68, 0.4);
 }
 
+.role-badge.admin {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
 .role-badge.editor {
   background: rgba(245, 158, 11, 0.2);
   color: #fbbf24;
@@ -3442,6 +3448,330 @@ input:checked + .slider:before {
     width: 100%;
     justify-content: center;
   }
+}
+
+/* ============================================================================
+   UNIFIED AUTHENTICATION & RBAC ROLE SWITCHER MODAL
+   ============================================================================ */
+.auth-modal-box {
+  background: #0d1321;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: 20px;
+  box-shadow: 0 35px 80px -15px rgba(0, 0, 0, 0.95), 0 0 35px rgba(16, 185, 129, 0.2);
+  width: 100%;
+  max-width: 580px;
+  overflow: hidden;
+  animation: modalScale 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.auth-modal-body {
+  padding: 1.5rem 1.75rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.auth-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.auth-input-label {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.auth-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--accent-emerald);
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+.auth-email-field {
+  width: 100%;
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 0.75rem 1rem 0.75rem 2.6rem;
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-family: inherit;
+  transition: var(--transition);
+}
+
+.auth-email-field:focus {
+  outline: none;
+  border-color: var(--accent-emerald);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+  background: rgba(30, 41, 59, 0.98);
+}
+
+.auth-quick-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.auth-chip-label {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.auth-chip-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.22rem 0.55rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.auth-chip-btn:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--accent-emerald);
+  color: #ffffff;
+}
+
+.auth-feedback-box {
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  transition: all 0.3s ease;
+}
+
+.auth-feedback-box.default {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+}
+
+.auth-feedback-box.user {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fcd34d;
+}
+
+.auth-feedback-box.editor {
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+.auth-feedback-box.admin {
+  background: rgba(59, 130, 246, 0.14);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #93c5fd;
+}
+
+.auth-feedback-box.super {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #34d399;
+}
+
+.auth-roles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.auth-role-card {
+  position: relative;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0.85rem 1.1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.auth-role-card:hover:not(.role-card-disabled) {
+  border-color: var(--accent-emerald);
+  background: rgba(30, 41, 59, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+}
+
+.auth-role-card.selected {
+  border-color: var(--accent-emerald);
+  background: rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.25);
+}
+
+/* THE KEY REQUIREMENT: Greyed-out state for normal users */
+.auth-role-card.role-card-disabled {
+  opacity: 0.32 !important;
+  filter: grayscale(1) !important;
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  background: rgba(15, 23, 42, 0.45) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.role-card-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.role-card-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--accent-emerald);
+}
+
+.role-card-icon-wrap.super {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.role-card-icon-wrap.admin {
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.role-card-icon-wrap.editor {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.15);
+}
+
+.role-card-icon-wrap.user {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.role-card-details h5 {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.role-card-details p {
+  font-size: 0.74rem;
+  color: #94a3b8;
+  margin-top: 0.15rem;
+}
+
+.role-card-badge-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.role-lock-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.role-active-check {
+  display: none;
+  color: var(--accent-emerald);
+  font-size: 1.1rem;
+}
+
+.auth-role-card.selected .role-active-check {
+  display: inline-block;
+}
+
+.auth-login-submit-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #0b0f17;
+  font-weight: 800;
+  border: none;
+  padding: 0.85rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
+  transition: var(--transition);
+}
+
+.auth-login-submit-btn:hover {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 6px 22px rgba(16, 185, 129, 0.5);
+  transform: translateY(-1px);
+}
+
+.rbac-role-select {
+  background: #0f172a;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #ffffff;
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition);
+}
+
+.rbac-role-select:focus {
+  border-color: var(--accent-emerald);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+}
+
+.rbac-role-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Print Styles for E-Ticket */
