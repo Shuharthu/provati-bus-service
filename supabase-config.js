@@ -647,21 +647,8 @@ class ProvatiDB {
     let profile = profiles.find(p => (p.email || '').toLowerCase() === cleanEmail);
 
     if (!profile) {
-      // Automatic customer registration: default role strictly 'user'
-      const namePart = cleanEmail.split('@')[0].replace(/[._]/g, ' ');
-      const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
-      profile = {
-        id: 'usr-' + Date.now(),
-        full_name: `${formattedName} (Passenger)`,
-        phone: '+880 1700 000000',
-        email: cleanEmail,
-        role: 'user', // strictly passenger by default
-        avatar: 'assets/logo-transparent.png',
-        department: 'Customer / Passenger'
-      };
-      profiles.push(profile);
-      localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
-      this.notify('PROFILES_UPDATED', profiles);
+      // Normal passengers must sign up first by themselves before login!
+      throw new Error('Account not found! Passengers must sign up first before logging in. Please switch to the Passenger Sign Up tab.');
     }
 
     // Role enforcement based on DB profile:
@@ -684,6 +671,111 @@ class ProvatiDB {
 
     this.setCurrentUser(sessionUser);
     return sessionUser;
+  }
+
+  /**
+   * Passenger Self-Registration (Customers MUST sign up first before login)
+   */
+  registerPassenger({ full_name, email, phone, city, password }) {
+    if (!email || !email.trim() || !full_name || !full_name.trim()) {
+      throw new Error('Please enter your full name and email address.');
+    }
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Prevent passenger from attempting to self-claim official @provati.com.bd staff domain
+    if (cleanEmail.endsWith('@provati.com.bd')) {
+      throw new Error('Official Provati staff domains (@provati.com.bd) cannot be self-registered. Only Super Admin can provision staff accounts.');
+    }
+
+    let profiles = this.getAllProfiles();
+    if (profiles.some(p => (p.email || '').toLowerCase() === cleanEmail)) {
+      throw new Error('An account with this email address already exists. Please log in.');
+    }
+
+    const newPassenger = {
+      id: 'usr-' + Date.now(),
+      full_name: full_name.trim(),
+      phone: phone ? phone.trim() : '+880 1700 000000',
+      email: cleanEmail,
+      city: city ? city.trim() : 'Dhaka',
+      role: 'user', // strictly passenger
+      avatar: 'assets/logo-transparent.png',
+      department: 'Registered Passenger',
+      created_at: new Date().toISOString()
+    };
+
+    profiles.push(newPassenger);
+    localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
+    this.logAudit(newPassenger.full_name, 'user', 'USER_SIGNUP', `New passenger self-registered: ${newPassenger.email}`);
+    this.notify('PROFILES_UPDATED', profiles);
+
+    // Auto-login newly registered passenger
+    this.setCurrentUser(newPassenger);
+    return newPassenger;
+  }
+
+  /**
+   * Super Admin Exclusive: Provision New Admin or Editor Staff Account
+   */
+  createStaffAccount({ full_name, email, phone, role, department }) {
+    const activeUser = this.getCurrentUser();
+    if (activeUser.role !== 'super_admin') {
+      throw new Error('Permission Denied: Only Super Admin can provision staff accounts.');
+    }
+
+    if (!full_name || !email || !role) {
+      throw new Error('Please provide full name, official email, and assigned role.');
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    let profiles = this.getAllProfiles();
+    if (profiles.some(p => (p.email || '').toLowerCase() === cleanEmail)) {
+      throw new Error('A user with this email address already exists in the system directory.');
+    }
+
+    const validRoles = ['admin', 'editor', 'user', 'super_admin'];
+    const assignedRole = validRoles.includes(role) ? role : 'editor';
+
+    const newStaff = {
+      id: 'usr-' + Date.now(),
+      full_name: full_name.trim(),
+      phone: phone ? phone.trim() : '+880 1700 000000',
+      email: cleanEmail,
+      role: assignedRole,
+      avatar: 'assets/logo-transparent.png',
+      department: department ? department.trim() : (assignedRole === 'admin' ? 'Fleet Operations & Fares' : 'Fleet Dispatch & Counters'),
+      created_at: new Date().toISOString()
+    };
+
+    profiles.push(newStaff);
+    localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
+    this.logAudit('Super Admin', 'super_admin', 'PROVISION_STAFF', `Super Admin provisioned new ${assignedRole.toUpperCase()} account for ${newStaff.full_name} (${newStaff.email})`);
+    this.notify('PROFILES_UPDATED', profiles);
+    return newStaff;
+  }
+
+  /**
+   * Super Admin Exclusive: Remove or Revoke Staff Account
+   */
+  removeProfile(userId) {
+    const activeUser = this.getCurrentUser();
+    if (activeUser.role !== 'super_admin') {
+      throw new Error('Permission Denied: Only Super Admin can remove user accounts.');
+    }
+
+    let profiles = this.getAllProfiles();
+    const target = profiles.find(p => p.id === userId);
+    if (!target) throw new Error('Target profile not found.');
+
+    if (target.email === 'admin@provati.com.bd') {
+      throw new Error('Root Super Administrator account cannot be deleted.');
+    }
+
+    profiles = profiles.filter(p => p.id !== userId);
+    localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
+    this.logAudit('Super Admin', 'super_admin', 'DELETE_USER', `Super Admin deleted account: ${target.full_name} (${target.email})`);
+    this.notify('PROFILES_UPDATED', profiles);
+    return true;
   }
 
   // --- Buses Fleet ---
@@ -987,6 +1079,33 @@ class ProvatiDB {
     this.notify('BOOKINGS_UPDATED', bookings);
     this.notify('SCHEDULES_CHANGED', schedules);
     return true;
+  }
+
+  getBookingById(idOrPnr) {
+    const bookings = this.getBookings();
+    if (!idOrPnr) return null;
+    const clean = idOrPnr.trim().toUpperCase();
+    return bookings.find(b => b.id === idOrPnr || (b.pnr_code || '').toUpperCase() === clean || (b.pnr_code || '').replace('PNR ', '').toUpperCase() === clean.replace('PNR ', '')) || null;
+  }
+
+  confirmCounterHoldPayment(pnrCode) {
+    const bookings = this.getBookings();
+    const cleanPnr = pnrCode.trim().toUpperCase();
+    const booking = bookings.find(b => (b.pnr_code || '').toUpperCase() === cleanPnr || (b.pnr_code || '').replace('PNR ', '').toUpperCase() === cleanPnr.replace('PNR ', ''));
+
+    if (!booking) {
+      throw new Error('Order matching PNR could not be found.');
+    }
+
+    booking.booking_status = 'confirmed';
+    booking.payment_status = 'PAID';
+    booking.payment_method = 'Cash at Counter (Confirmed)';
+    booking.confirmed_at = new Date().toISOString();
+
+    localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(bookings));
+    this.logAudit('Super Admin', 'super_admin', 'CONFIRM_HOLD_PAYMENT', `Super Admin confirmed counter cash payment for PNR ${booking.pnr_code} (Total BDT ${booking.total_amount})`);
+    this.notify('BOOKINGS_UPDATED', bookings);
+    return booking;
   }
 
   // --- Audit Logs ---
