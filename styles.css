@@ -528,81 +528,90 @@ body {
    ============================================================================ */
 .hero-section {
   position: relative;
-  padding: 4.5rem 0 3.5rem;
+  padding: 4rem 0 3.5rem;
   overflow: hidden;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
 .hero-glow-blob {
   position: absolute;
-  top: 10%;
+  top: 5%;
   left: 50%;
   transform: translateX(-50%);
-  width: 900px;
-  height: 450px;
-  background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.16) 0%, rgba(37, 99, 235, 0.08) 45%, transparent 70%);
+  width: 1000px;
+  height: 550px;
+  background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.22) 0%, rgba(37, 99, 235, 0.12) 40%, rgba(245, 158, 11, 0.05) 65%, transparent 80%);
   pointer-events: none;
   z-index: 0;
+  filter: blur(40px);
 }
 
 .hero-content {
   position: relative;
   z-index: 2;
   text-align: center;
-  max-width: 1050px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
 .hero-pill-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  background: rgba(16, 185, 129, 0.14);
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  gap: 0.55rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(5, 150, 105, 0.1));
+  border: 1px solid rgba(16, 185, 129, 0.45);
   color: var(--accent-emerald);
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0.4rem 1.1rem;
+  padding: 0.42rem 1.15rem;
   border-radius: 30px;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25);
+  animation: floatSubtle 4s ease-in-out infinite;
+}
+
+@keyframes floatSubtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
 
 .hero-title-main {
-  font-size: 3.5rem;
+  font-size: 3.6rem;
   font-weight: 900;
   line-height: 1.15;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
   color: #ffffff;
   margin-bottom: 1.25rem;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
 }
 
 .hero-title-main span.gradient-text {
-  background: linear-gradient(135deg, #10b981 0%, #38bdf8 50%, #f59e0b 100%);
+  background: linear-gradient(135deg, #10b981 0%, #34d399 35%, #38bdf8 70%, #f59e0b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .hero-desc {
   font-size: 1.15rem;
-  color: var(--light-ice-blue);
-  opacity: 0.9;
+  color: #cbd5e1;
   max-width: 820px;
   margin: 0 auto 2.5rem;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 /* Floating Quick Search Bar in Hero */
 .hero-search-container {
-  background: rgba(15, 23, 42, 0.88);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-xl);
+  background: rgba(13, 19, 33, 0.88);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 20px;
   padding: 1.75rem;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 30px rgba(16, 185, 129, 0.15);
-  margin-bottom: 2rem;
+  box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.85), 0 0 35px rgba(16, 185, 129, 0.18);
+  margin-bottom: 1.5rem;
   position: relative;
   text-align: left;
 }
@@ -646,8 +655,8 @@ body {
 
 .hero-input-field {
   width: 100%;
-  background: rgba(30, 41, 59, 0.75);
-  border: 1px solid var(--glass-border);
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-md);
   padding: 0.8rem 0.85rem 0.8rem 2.4rem;
   color: #ffffff;
@@ -660,14 +669,14 @@ body {
 .hero-input-field:focus {
   outline: none;
   border-color: var(--accent-emerald);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
-  background: rgba(30, 41, 59, 0.95);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+  background: rgba(30, 41, 59, 0.98);
 }
 
 .hero-swap-center-btn {
-  background: var(--bg-surface-2);
-  border: 1px solid var(--glass-border);
-  color: var(--light-ice-blue);
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: var(--accent-emerald);
   width: 42px;
   height: 42px;
   border-radius: 50%;
@@ -682,7 +691,8 @@ body {
 .hero-swap-center-btn:hover {
   background: var(--accent-emerald);
   color: #0b0f17;
-  transform: rotate(180deg);
+  transform: rotate(180deg) scale(1.08);
+  box-shadow: 0 0 15px var(--accent-emerald-glow);
 }
 
 .hero-search-submit-btn {
@@ -700,13 +710,13 @@ body {
   justify-content: center;
   gap: 0.5rem;
   margin-top: 1.25rem;
-  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.45);
 }
 
 .hero-search-submit-btn:hover {
   background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.55);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
 }
 
 /* Popular Routes Quick Chips */
@@ -714,30 +724,31 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
 .hero-popular-label {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  font-weight: 600;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 700;
 }
 
 .popular-route-pill {
   background: rgba(30, 41, 59, 0.65);
-  border: 1px solid var(--glass-border);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--light-ice-blue);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  padding: 0.35rem 0.85rem;
+  padding: 0.38rem 0.9rem;
   border-radius: 20px;
   cursor: pointer;
   transition: var(--transition);
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
+  backdrop-filter: blur(8px);
 }
 
 .popular-route-pill:hover {
@@ -745,30 +756,170 @@ body {
   border-color: var(--accent-emerald);
   color: #ffffff;
   transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
 }
 
 .popular-route-pill .fare-tag {
   color: var(--accent-emerald);
+  font-weight: 800;
+  background: rgba(16, 185, 129, 0.15);
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+/* Spotlight Luxury Fleet Visual Showcase Banner */
+.hero-showcase-visual-card {
+  max-width: 980px;
+  margin: 1.5rem auto 2.5rem;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.85), 0 0 35px rgba(16, 185, 129, 0.15);
+  transition: var(--transition);
+}
+
+.hero-showcase-visual-card:hover {
+  border-color: var(--accent-emerald);
+  box-shadow: 0 35px 80px -15px rgba(0, 0, 0, 0.9), 0 0 45px rgba(16, 185, 129, 0.25);
+}
+
+.hero-visual-img-wrap {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  overflow: hidden;
+  background: #090d16;
+}
+
+.hero-visual-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 45%;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-showcase-visual-card:hover .hero-visual-img {
+  transform: scale(1.04);
+}
+
+.hero-visual-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(9, 13, 22, 0.95) 0%, rgba(9, 13, 22, 0.4) 55%, rgba(9, 13, 22, 0.2) 100%);
+  pointer-events: none;
+}
+
+.hero-floating-tag {
+  background: rgba(9, 13, 22, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.76rem;
   font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  z-index: 2;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.hero-floating-tag.top-left {
+  position: absolute;
+  top: 1.25rem;
+  left: 1.25rem;
+}
+
+.hero-floating-tag.top-right {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+}
+
+.hero-visual-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  z-index: 2;
+  text-align: left;
+}
+
+.hero-caption-left h4 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.01em;
+}
+
+.hero-caption-left p {
+  font-size: 0.85rem;
+  color: #cbd5e1;
+}
+
+.hero-visual-cta {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #0b0f17;
+  font-weight: 800;
+  border: none;
+  padding: 0.55rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+  transition: var(--transition);
+}
+
+.hero-visual-cta:hover {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55);
 }
 
 /* Hero Key Stats Metrics Strip */
 .hero-stats-strip {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  gap: 1.25rem;
   padding-top: 1.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .hero-stat-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 1.25rem 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+  backdrop-filter: blur(10px);
+  transition: var(--transition);
+}
+
+.hero-stat-item:hover {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
 .hero-stat-number {
-  font-size: 2.2rem;
+  font-size: 2.3rem;
   font-weight: 900;
   color: #ffffff;
   line-height: 1.1;
@@ -782,8 +933,8 @@ body {
 
 .hero-stat-label {
   font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
+  color: #94a3b8;
+  margin-top: 0.35rem;
   font-weight: 600;
 }
 

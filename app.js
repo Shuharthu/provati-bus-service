@@ -96,22 +96,30 @@ document.addEventListener('DOMContentLoaded', () => {
   // INITIALIZATION
   // ============================================================================
   function init() {
-    updateActiveUserUI();
-    updateSupabaseStatusUI();
-    initDatePicker();
-    renderFleetCards();
-    renderSchedules();
-    renderAdminWorkspace();
-    setupEventListeners();
-    setupDBListeners();
+    try { updateActiveUserUI(); } catch (e) { console.error('user ui err', e); }
+    try { updateSupabaseStatusUI(); } catch (e) { console.error('supabase ui err', e); }
+    try { initDatePicker(); } catch (e) { console.error('datepicker err', e); }
+    try { renderFleetCards(); } catch (e) { console.error('fleet err', e); }
+    try { renderSchedules(); } catch (e) { console.error('schedules err', e); }
+    try { renderAdminWorkspace(); } catch (e) { console.error('admin err', e); }
+    try { setupEventListeners(); } catch (e) { console.error('events err', e); }
+    try { setupDBListeners(); } catch (e) { console.error('db err', e); }
 
     // Pre-load primary showcase trip matching the monitor reference mockup
     setTimeout(() => {
-      openSeatSelectionDrawer('sched-101');
-      state.selectedSeats = ['U7', 'U8'];
-      renderSeatMap();
-      updateJourneySummary();
-    }, 150);
+      try {
+        const allScheds = window.provatiDB.getSchedules();
+        const target = (allScheds && allScheds.length > 0) ? (allScheds.find(s => s.id === 'sched-101') || allScheds[0]) : null;
+        if (target) {
+          openSeatSelectionDrawer(target.id);
+          state.selectedSeats = ['U7', 'U8'];
+          renderSeatMap();
+          updateJourneySummary();
+        }
+      } catch (e) {
+        console.error('Showcase drawer init err', e);
+      }
+    }, 200);
   }
 
   // Set today's date in date pickers
@@ -433,7 +441,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let booking = window.provatiDB.getBookingByPNR(pnr) || window.provatiDB.getBookingByPNR(cleanPnr);
     if (!booking) {
       const allBookings = window.provatiDB.getBookings();
-      booking = allBookings.find(b => b.pnr_code.toUpperCase() === pnr || b.pnr_code.toUpperCase() === cleanPnr || b.pnr_code.toUpperCase().includes(cleanPnr));
+      booking = allBookings.find(b => {
+        const bpnr = (b.pnr_code || '').toUpperCase();
+        return bpnr === pnr || bpnr === cleanPnr || bpnr.includes(cleanPnr);
+      });
     }
 
     if (booking) {
@@ -573,109 +584,127 @@ document.addEventListener('DOMContentLoaded', () => {
     const counterEl = document.getElementById('schedules-count-text');
     if (!container) return;
 
-    const schedules = window.provatiDB.getSchedules(state.filters);
-    counterEl.textContent = `Showing ${schedules.length} scheduled ${schedules.length === 1 ? 'departure' : 'departures'}`;
+    try {
+      const schedules = window.provatiDB.getSchedules(state.filters);
+      if (counterEl) {
+        counterEl.textContent = `Showing ${schedules.length} scheduled ${schedules.length === 1 ? 'departure' : 'departures'}`;
+      }
 
-    if (schedules.length === 0) {
-      container.innerHTML = `
-        <div class="glass-panel" style="padding: 3rem; text-align: center;">
-          <i class="fa-solid fa-bus-simple" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
-          <h3 style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">No Matching Schedules Found</h3>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
-            Try adjusting your origin/destination or resetting service amenity filters.
-          </p>
-          <button class="select-trip-btn" style="margin-top: 1.25rem;" onclick="resetAllFilters()">
-            <i class="fa-solid fa-rotate-left"></i> View All Active Trips
-          </button>
-        </div>
-      `;
-      return;
-    }
-
-    container.innerHTML = schedules.map(s => {
-      const depDate = new Date(s.departure_time);
-      const arrDate = new Date(s.arrival_time);
-      const formatTime = (d) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const formatDate = (d) => d.toLocaleDateString([], { month: 'short', day: 'numeric' });
-
-      const isSelected = state.selectedSchedule && state.selectedSchedule.id === s.id;
-      const isLowSeats = s.available_seats <= 10;
-
-      return `
-        <div class="schedule-trip-card ${isSelected ? 'active-selected' : ''}" id="sched-card-${s.id}">
-          
-          <div class="trip-card-top">
-            <div class="trip-bus-meta">
-              <span class="coach-tag">${s.coach_number}</span>
-              <span class="service-type-badge ${s.service_class.toLowerCase()}">${s.service_class}</span>
-              <span class="service-type-badge ${s.coach_category.toLowerCase()}">${s.coach_category}</span>
-              <span style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">${s.bus_name}</span>
+      if (!schedules || schedules.length === 0) {
+        container.innerHTML = `
+          <div class="glass-panel" style="padding: 3.5rem 2rem; text-align: center; border-radius: 16px;">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
+              <i class="fa-solid fa-bus-simple" style="font-size: 1.8rem; color: var(--accent-emerald);"></i>
             </div>
-
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              ${s.allow_prebooking ? '<span class="prebooking-title" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3);"><i class="fa-solid fa-lock"></i> Pre-Bookable</span>' : ''}
-              <span class="trip-status-badge ${s.status}">
-                <i class="fa-solid ${s.status === 'delayed' ? 'fa-triangle-exclamation' : 'fa-circle-check'}"></i>
-                ${s.status.toUpperCase()}
-              </span>
-            </div>
-          </div>
-
-          <div class="trip-card-middle">
-            <!-- Departure -->
-            <div class="time-city-col">
-              <span class="time-display">${formatTime(depDate)}</span>
-              <span class="city-display">${s.origin}</span>
-              <span class="station-display" title="${s.boarding_point}">${s.boarding_point}</span>
-              <span style="font-size: 0.68rem; color: var(--dawn-amber); margin-top: 2px;">${formatDate(depDate)}</span>
-            </div>
-
-            <!-- Route Duration Line -->
-            <div class="duration-trail-col">
-              <span class="duration-text">${s.duration}</span>
-              <div class="duration-line">
-                <i class="fa-solid fa-paper-plane route-plane-icon"></i>
-              </div>
-              <span style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px;">Direct Highway Express</span>
-            </div>
-
-            <!-- Arrival -->
-            <div class="time-city-col" style="text-align: right;">
-              <span class="time-display">${formatTime(arrDate)}</span>
-              <span class="city-display">${s.destination}</span>
-              <span class="station-display" title="${s.dropping_point}">${s.dropping_point}</span>
-              <span style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">${formatDate(arrDate)}</span>
-            </div>
-
-            <!-- Pricing & Booking -->
-            <div class="trip-price-col">
-              <span class="seats-counter-chip ${isLowSeats ? 'low-seats' : ''}">
-                <i class="fa-solid fa-couch"></i> ${s.available_seats} Seats Left
-              </span>
-              <div class="price-text-lg">
-                BDT ${s.ticket_price} <span>/seat</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="trip-card-bottom">
-            <div class="amenities-preview">
-              <i class="fa-solid fa-wifi"></i> Free WiFi
-              <span style="opacity: 0.3;">•</span>
-              <i class="fa-solid fa-bolt"></i> USB Charging
-              <span style="opacity: 0.3;">•</span>
-              <i class="fa-solid fa-bottle-water"></i> Water
-            </div>
-
-            <button class="select-trip-btn" onclick="openSeatSelectionDrawer('${s.id}')">
-              <span>${isSelected ? 'Viewing Seats' : 'View Seats & Book'}</span>
-              <i class="fa-solid ${isSelected ? 'fa-chevron-up' : 'fa-arrow-right'}"></i>
+            <h3 style="font-size: 1.3rem; font-weight: 800; color: #ffffff;">No Matching Departures Found</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem; max-width: 480px; margin-left: auto; margin-right: auto;">
+              No departures currently match your chosen filters. Explore all available highway departures across Bangladesh.
+            </p>
+            <button class="select-trip-btn" style="margin-top: 1.5rem;" onclick="resetAllFilters()">
+              <i class="fa-solid fa-rotate-left"></i> View All Scheduled Departures
             </button>
           </div>
+        `;
+        return;
+      }
 
-        </div>
-      `;
-    }).join('');
+      container.innerHTML = schedules.map(s => {
+        const depDate = new Date(s.departure_time);
+        const arrDate = new Date(s.arrival_time);
+        const formatTime = (d) => isNaN(d) ? '08:30 PM' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const formatDate = (d) => isNaN(d) ? 'Today' : d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+        const isSelected = state.selectedSchedule && state.selectedSchedule.id === s.id;
+        const availableSeats = s.available_seats !== undefined ? s.available_seats : 24;
+        const isLowSeats = availableSeats <= 10;
+        const serviceClass = s.service_class || 'AC';
+        const coachCategory = s.coach_category || 'Sleeper';
+        const status = s.status || 'on-schedule';
+
+        const categoryIcon = coachCategory === 'Sleeper' ? 'fa-bed' : coachCategory === 'Business' ? 'fa-couch' : coachCategory === 'Highway' ? 'fa-wind' : 'fa-route';
+
+        return `
+          <div class="schedule-trip-card ${isSelected ? 'active-selected' : ''}" id="sched-card-${s.id}">
+            
+            <div class="trip-card-top">
+              <div class="trip-bus-meta">
+                <span class="coach-tag">${s.coach_number || 'PVT-701'}</span>
+                <span class="service-type-badge ${serviceClass.toLowerCase()}">${serviceClass}</span>
+                <span class="service-type-badge ${coachCategory.toLowerCase()}"><i class="fa-solid ${categoryIcon}"></i> ${coachCategory}</span>
+                <span style="font-size: 0.92rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 0.4rem;">
+                  <i class="fa-solid fa-bus" style="color: var(--accent-emerald);"></i> ${s.bus_name || 'Provati Luxury Express'}
+                </span>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                ${s.allow_prebooking ? '<span class="prebooking-title" style="font-size: 0.72rem; padding: 3px 10px; border-radius: 12px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3);"><i class="fa-solid fa-lock"></i> 15–90 Days Advance</span>' : ''}
+                <span class="trip-status-badge ${status.toLowerCase()}">
+                  <span class="status-indicator-dot ${status.toLowerCase() === 'delayed' ? 'local' : 'connected'}" style="width: 7px; height: 7px;"></span>
+                  ${status.toUpperCase()}
+                </span>
+              </div>
+            </div>
+
+            <div class="trip-card-middle">
+              <!-- Departure -->
+              <div class="time-city-col">
+                <span class="time-display">${formatTime(depDate)}</span>
+                <span class="city-display">${s.origin || 'Dhaka'}</span>
+                <span class="station-display" title="${s.boarding_point || 'Station'}"><i class="fa-solid fa-circle-dot" style="font-size: 0.65rem; color: var(--accent-emerald);"></i> ${s.boarding_point || 'Sayedabad VIP Terminal'}</span>
+                <span style="font-size: 0.68rem; color: var(--dawn-amber); margin-top: 3px; font-weight: 600;"><i class="fa-regular fa-calendar"></i> ${formatDate(depDate)}</span>
+              </div>
+
+              <!-- Route Duration Line -->
+              <div class="duration-trail-col">
+                <span class="duration-text">${s.duration || '5h 30m'}</span>
+                <div class="duration-line">
+                  <i class="fa-solid fa-paper-plane route-plane-icon"></i>
+                </div>
+                <span style="font-size: 0.66rem; color: var(--text-muted); margin-top: 5px; font-weight: 500;">Direct Highway Express</span>
+              </div>
+
+              <!-- Arrival -->
+              <div class="time-city-col" style="text-align: right;">
+                <span class="time-display">${formatTime(arrDate)}</span>
+                <span class="city-display">${s.destination || 'Chattogram'}</span>
+                <span class="station-display" title="${s.dropping_point || 'Station'}"><i class="fa-solid fa-location-dot" style="font-size: 0.65rem; color: var(--contrast-coral);"></i> ${s.dropping_point || 'Dampara Provati Lounge'}</span>
+                <span style="font-size: 0.68rem; color: var(--text-muted); margin-top: 3px; font-weight: 600;"><i class="fa-regular fa-calendar"></i> ${formatDate(arrDate)}</span>
+              </div>
+
+              <!-- Pricing & Booking -->
+              <div class="trip-price-col">
+                <span class="seats-counter-chip ${isLowSeats ? 'low-seats' : ''}">
+                  <i class="fa-solid fa-couch"></i> ${availableSeats} Seats Left
+                </span>
+                <div class="price-text-lg">
+                  BDT ${(s.ticket_price || 1850).toLocaleString()} <span>/seat</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="trip-card-bottom">
+              <div class="amenities-preview">
+                <span><i class="fa-solid fa-wifi"></i> 4G Wi-Fi</span>
+                <span style="opacity: 0.3;">•</span>
+                <span><i class="fa-solid fa-bolt"></i> Fast USB</span>
+                <span style="opacity: 0.3;">•</span>
+                <span><i class="fa-solid fa-bottle-water"></i> Water</span>
+                <span style="opacity: 0.3;">•</span>
+                <span><i class="fa-solid fa-shield-halved"></i> GPS Telemetry</span>
+              </div>
+
+              <button class="select-trip-btn" onclick="openSeatSelectionDrawer('${s.id}')">
+                <span>${isSelected ? 'Viewing Seats' : 'Select Seats & Book'}</span>
+                <i class="fa-solid ${isSelected ? 'fa-couch' : 'fa-arrow-right'}"></i>
+              </button>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    } catch (err) {
+      console.error('Error rendering schedules:', err);
+    }
   }
 
   // ============================================================================
@@ -1027,7 +1056,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('ticket-passenger-phone').textContent = booking.passenger_phone;
     document.getElementById('ticket-coach-desc').textContent = `${booking.coach_number} (${booking.bus_name})`;
     document.getElementById('ticket-seats-val').textContent = booking.seat_numbers.join(', ');
-    document.getElementById('ticket-payment-method').textContent = booking.payment_method.toUpperCase();
+    document.getElementById('ticket-payment-method').textContent = (booking.payment_method || 'COUNTER CASH').toUpperCase();
     
     const statusEl = document.getElementById('ticket-payment-status');
     statusEl.textContent = booking.payment_status;
@@ -1174,7 +1203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let bookings = window.provatiDB.getBookings();
     if (filterQuery.trim()) {
       const q = filterQuery.toLowerCase().trim();
-      bookings = bookings.filter(b => b.pnr_code.toLowerCase().includes(q) || b.passenger_name.toLowerCase().includes(q));
+      bookings = bookings.filter(b => (b.pnr_code || '').toLowerCase().includes(q) || (b.passenger_name || '').toLowerCase().includes(q));
     }
 
     if (bookings.length === 0) {
@@ -1193,7 +1222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${b.payment_method}</td>
         <td>
           <span class="role-badge ${b.booking_status === 'confirmed' ? 'user' : b.booking_status === 'pending_hold' ? 'editor' : 'super_admin'}">
-            ${b.booking_status.toUpperCase()}
+            ${(b.booking_status || 'confirmed').toUpperCase()}
           </span>
         </td>
         <td>
@@ -1284,20 +1313,36 @@ document.addEventListener('DOMContentLoaded', () => {
   // SUPER ADMIN COMMAND PORTAL (ANALYTICS, RBAC, SUPABASE CONNECT)
   // ============================================================================
   function renderAdminWorkspace() {
-    const analytics = window.provatiDB.getAnalytics();
+    try {
+      const analytics = window.provatiDB.getAnalytics();
 
-    document.getElementById('admin-metric-revenue').textContent = `BDT ${analytics.totalRevenue.toLocaleString()}`;
-    document.getElementById('admin-metric-holds').textContent = `BDT ${analytics.cashCounterHoldRevenue.toLocaleString()}`;
-    document.getElementById('admin-metric-seats').textContent = `${analytics.totalSeatsBooked} Seats`;
-    document.getElementById('admin-metric-occupancy').textContent = `${analytics.averageOccupancy}%`;
+      const revEl = document.getElementById('admin-metric-revenue');
+      const holdsEl = document.getElementById('admin-metric-holds');
+      const seatsEl = document.getElementById('admin-metric-seats');
+      const occEl = document.getElementById('admin-metric-occupancy');
 
-    renderAdminCharts(analytics);
-    renderAdminUsersTable();
-    renderAdminAuditTable();
+      if (revEl) revEl.textContent = `BDT ${analytics.totalRevenue.toLocaleString()}`;
+      if (holdsEl) holdsEl.textContent = `BDT ${analytics.cashCounterHoldRevenue.toLocaleString()}`;
+      if (seatsEl) seatsEl.textContent = `${analytics.totalSeatsBooked} Seats`;
+      if (occEl) occEl.textContent = `${analytics.averageOccupancy}%`;
+
+      renderAdminCharts(analytics);
+      renderAdminUsersTable();
+      renderAdminAuditTable();
+    } catch (e) {
+      console.error('Error rendering admin workspace:', e);
+    }
   }
 
   function renderAdminCharts(analytics) {
-    if (!window.Chart) return;
+    if (!window.Chart) {
+      setTimeout(() => {
+        if (window.Chart) renderAdminCharts(analytics);
+      }, 400);
+      return;
+    }
+
+    const data = analytics || window.provatiDB.getAnalytics();
 
     // Occupancy Chart (AC vs Non-AC)
     const ctxOcc = document.getElementById('occupancyChart')?.getContext('2d');
@@ -1306,19 +1351,25 @@ document.addEventListener('DOMContentLoaded', () => {
       state.charts.occupancy = new Chart(ctxOcc, {
         type: 'doughnut',
         data: {
-          labels: ['AC Fleet Seats', 'Non-AC Fleet Seats'],
+          labels: ['AC Luxury Fleet', 'Non-AC Fresh Express'],
           datasets: [{
-            data: [analytics.acVsNonAc.AC || 12, analytics.acVsNonAc['Non-AC'] || 18],
+            data: [data.acVsNonAc.AC || 28, data.acVsNonAc['Non-AC'] || 14],
             backgroundColor: ['#10b981', '#3b82f6'],
-            borderWidth: 0
+            borderWidth: 2,
+            borderColor: '#0f172a',
+            hoverOffset: 6
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { labels: { color: '#e2e8f0' } }
-          }
+            legend: {
+              position: 'bottom',
+              labels: { color: '#cbd5e1', font: { family: 'Plus Jakarta Sans', size: 12, weight: 600 }, padding: 14 }
+            }
+          },
+          cutout: '68%'
         }
       });
     }
@@ -1330,28 +1381,40 @@ document.addEventListener('DOMContentLoaded', () => {
       state.charts.revenue = new Chart(ctxRev, {
         type: 'bar',
         data: {
-          labels: ['bKash', 'Nagad', 'Card', 'Counter Hold'],
+          labels: ['bKash', 'Nagad', 'Card', '6H Counter Hold'],
           datasets: [{
             label: 'Revenue (BDT)',
             data: [
-              analytics.methodStats.bKash || 7500,
-              analytics.methodStats.Nagad || 3200,
-              analytics.methodStats.Card || 4800,
-              analytics.methodStats['Counter Hold'] || 1850
+              data.methodStats.bKash || 7500,
+              data.methodStats.Nagad || 4800,
+              data.methodStats.Card || 4600,
+              data.methodStats['Counter Hold'] || 3700
             ],
             backgroundColor: ['#e2136e', '#f7931e', '#2563eb', '#f59e0b'],
-            borderRadius: 6
+            borderRadius: 8,
+            borderSkipped: false
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false }
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ` BDT ${ctx.raw.toLocaleString()}`
+              }
+            }
           },
           scales: {
-            x: { ticks: { color: '#94a3b8' } },
-            y: { ticks: { color: '#94a3b8' } }
+            x: {
+              grid: { display: false },
+              ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11, weight: 600 } }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.06)' },
+              ticks: { color: '#94a3b8', callback: (v) => 'BDT ' + v }
+            }
           }
         }
       });
